@@ -1,0 +1,99 @@
+/* Estilos globales: la paleta de i-Moovie, las tipografías y un reset mínimo.
+   Las "variables CSS" (--algo) nos dejan definir un valor UNA vez
+   y usarlo en todo el proyecto con var(--algo).
+
+   La paleta es: FONDO NEGRO, TEXTO BLANCO y DETALLES EN NARANJA (el color de la
+   marca). Los negros se usan en capas para dar profundidad y los grises son solo
+   de apoyo (bordes y textos secundarios), sin color, para no competir con el naranja. */
+
+:root {
+  /* ---------- NEGROS: de más profundo a más claro ----------
+     Se usan en capas: cuanto más "arriba" está un elemento, más claro es su fondo.
+       negro-0  barra de navegación y pie de página
+       negro-1  fondo de la página
+       negro-2  paneles grandes
+       negro-3  tarjetas
+       negro-4  campos, tarjetas elevadas, opciones de listas
+       negro-5  pistas de barras y rayas (no lleva texto encima) */
+  --negro-0: #000000;
+  --negro-1: #050505;
+  --negro-2: #0d0d0d;
+  --negro-3: #141414;
+  --negro-4: #1c1c1c;
+  --negro-5: #2b2b2b;
+
+  /* ---------- GRISES (neutros, sin color) ----------
+     gris-1  bordes sutiles
+     gris-2  bordes de campos y botones (≥ 3:1 sobre las superficies, para que se vean)
+     gris-3  texto tenue
+     gris-4  texto secundario */
+  --gris-1: #2f2f2f;
+  --gris-2: #707070;
+  --gris-3: #a8a8a8;
+  --gris-4: #d6d6d6;
+
+  --texto: #ffffff; /* texto principal: blanco */
+
+  /* ---------- NARANJAS ---------- */
+  --naranja-claro: #ffb12b;
+  --naranja: #ff8c12; /* el color de la marca */
+  --naranja-fuerte: #ff7a0a;
+  --naranja-oscuro: #b85400; /* para bordes y detalles de acento (no para texto sobre negro) */
+  --naranja-tinte: rgba(255, 140, 18, 0.12); /* fondo suave para avisos */
+  --naranja-brillo: rgba(255, 140, 18, 0.12); /* resplandor de fondo, muy suave */
+  --degradado: linear-gradient(135deg, var(--naranja-claro), var(--naranja-fuerte));
+  --texto-sobre-naranja: #1a1209; /* texto oscuro que se lee bien sobre el naranja */
+
+  /* ---------- ESTADOS ---------- */
+  --error: #ff6b6b;
+  --error-claro: #ff8f8f;
+  --error-tinte: rgba(230, 57, 70, 0.2);
+  --ok: #06a77d;
+  --ok-claro: #5ee0b8;
+  --ok-tinte: rgba(6, 167, 125, 0.2);
+
+  /* ---------- Tipografías ----------
+     Se cargan en index.html. Si no se pueden cargar (sin conexión), el
+     navegador usa la siguiente de la lista. */
+  --fuente-texto: 'DM Sans', system-ui, sans-serif;
+  --fuente-titulos: 'Big Shoulders Display', 'DM Sans', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  /* Un resplandor naranja muy suave arriba de todo, sobre el fondo negro */
+  background: radial-gradient(900px 420px at 50% -80px, var(--naranja-brillo), transparent 70%),
+    var(--negro-1);
+  background-repeat: no-repeat;
+  color: var(--texto);
+  font-family: var(--fuente-texto);
+  line-height: 1.5;
+}
+
+/* Los títulos usan la tipografía condensada. Como es más angosta y baja,
+   se les sube un poco el tamaño para que se lean igual de bien. */
+h1,
+h2,
+h3 {
+  font-family: var(--fuente-titulos);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+h1 {
+  color: var(--naranja);
+  font-size: 2.6rem;
+}
+
+h2 {
+  font-size: 1.8rem;
+}
+
+h3 {
+  font-size: 1.4rem;
+}

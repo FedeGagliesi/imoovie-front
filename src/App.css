@@ -1,0 +1,1641 @@
+/* Estilos de la estructura general (barra de navegación y contenedor). */
+
+/* La raíz de la app ocupa como mínimo toda la altura de la ventana, y el contenido
+   (main) se estira: así el pie de página queda abajo aunque la página sea corta. */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barra de navegación: queda fija arriba al desplazarse, sobre el negro más profundo */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem max(1.5rem, calc((100% - 77rem) / 2));
+  background: color-mix(in srgb, var(--negro-0) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--gris-1);
+}
+
+/* Un hilo de luz naranja bajo la barra: detalle de marca */
+.navbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--naranja-oscuro) 50%, transparent);
+  pointer-events: none;
+}
+
+.navbar-logo {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.navbar nav {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.navbar nav a {
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.navbar nav a:hover {
+  color: var(--naranja);
+}
+
+/* El enlace de la página donde estamos (aria-current="page") se resalta */
+.navbar nav a[aria-current='page'] {
+  color: var(--naranja);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.45rem;
+}
+
+.navbar nav a:focus-visible,
+.navbar-logo:focus-visible {
+  outline: 2px solid var(--naranja);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+/* En pantallas muy anchas el contenido no se estira de borde a borde: tiene un ancho
+   máximo y se centra. La barra y el pie usan el mismo cálculo para su margen lateral
+   ("max(1.5rem, ...)" toma el mayor de los dos valores), así quedan alineados con el contenido. */
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding: 1.5rem;
+}
+
+/* ---------- Botones (reutilizables en todo el proyecto) ---------- */
+
+.boton {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  background: var(--degradado);
+  color: var(--texto-sobre-naranja);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.boton-secundario {
+  background: transparent;
+  color: var(--texto);
+  border: 1px solid var(--gris-2);
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  padding: 3rem 0 2.5rem;
+  max-width: 44rem;
+}
+
+.hero > p {
+  color: var(--gris-4);
+  font-size: 1.1rem;
+}
+
+.hero h1 {
+  font-size: clamp(2.8rem, 9vw, 4.8rem); /* crece con el ancho, con tope mínimo y máximo */
+  margin: 0 0 0.5rem;
+}
+
+.hero-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* ---------- Cartelera (afiches estilo cine) ---------- */
+
+/* Grilla adaptable: tantas columnas como entren, cada una de 150px o más.
+   En celular quedan 2 columnas y en PC 5-6, sin escribir media queries. */
+.cartelera {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1.75rem 1.25rem;
+}
+
+.cartelera-ayuda {
+  color: var(--gris-4);
+  margin: -0.25rem 0 1.25rem;
+}
+
+/* La tarjeta es un <button>: se le quita el aspecto de botón del navegador */
+.afiche-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.afiche-card:hover {
+  transform: translateY(-4px);
+}
+
+.afiche-card:focus-visible {
+  outline: 2px solid var(--texto);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+.afiche-titulo {
+  margin-top: 0.6rem;
+  font-family: var(--fuente-titulos);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--texto);
+}
+
+.afiche-card:hover .afiche-titulo {
+  color: var(--naranja-claro);
+}
+
+.afiche-datos {
+  font-size: 0.85rem;
+  color: var(--gris-4);
+}
+
+/* El afiche: formato vertical 2:3 como un póster. El color de la película llega
+   desde React en la variable --color-afiche. */
+.afiche {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--gris-1);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--color-afiche) 80%, #000),
+    color-mix(in srgb, var(--color-afiche) 25%, #000)
+  );
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.afiche-card:hover .afiche {
+  border-color: var(--naranja);
+  box-shadow: 0 12px 30px var(--naranja-brillo);
+}
+
+/* Perforaciones de cinta de cine a los dos costados */
+.afiche::before,
+.afiche::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 9px;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 7px,
+    rgba(0, 0, 0, 0.6) 7px 15px
+  );
+}
+
+.afiche::before {
+  left: 5px;
+}
+
+.afiche::after {
+  right: 5px;
+}
+
+/* Un brillo suave arriba para dar relieve */
+.afiche-brillo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 45%);
+}
+
+.afiche-letra {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-titulos);
+  font-size: clamp(4rem, 12vw, 6rem);
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+}
+
+.afiche-edad {
+  position: absolute;
+  top: 8px;
+  right: 22px;
+  z-index: 1;
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--texto);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ---------- Ficha de la película (ventana <dialog>) ---------- */
+
+.ficha {
+  width: min(44rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--naranja-oscuro);
+  border-radius: 14px;
+  background: var(--negro-3);
+  color: var(--texto);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+}
+
+/* El fondo oscuro que el navegador dibuja detrás de la ventana */
+.ficha::backdrop {
+  background: rgba(0, 0, 0, 0.78);
+}
+
+/* Con la ficha abierta, la página de atrás no se desplaza */
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+.ficha-contenido {
+  position: relative;
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+/* En celular el afiche va chico y centrado arriba */
+.ficha-contenido .afiche {
+  width: 9rem;
+  justify-self: center;
+}
+
+.ficha-info h2 {
+  margin: 0 0 0.75rem;
+}
+
+.ficha-datos {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.ficha-datos dt {
+  color: var(--naranja);
+  font-weight: 700;
+}
+
+.ficha-datos dd {
+  margin: 0;
+}
+
+.ficha-sinopsis {
+  margin: 0 0 1.25rem;
+  color: var(--gris-4);
+  line-height: 1.6;
+}
+
+.ficha-cerrar {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--gris-2);
+  border-radius: 50%;
+  background: var(--negro-2);
+  color: var(--texto);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.ficha-cerrar:hover {
+  border-color: var(--naranja);
+}
+
+.ficha-cerrar:focus-visible {
+  outline: 2px solid var(--texto);
+  outline-offset: 2px;
+}
+
+/* En pantallas más anchas: afiche a la izquierda, datos a la derecha */
+@media (min-width: 600px) {
+  .ficha-contenido {
+    grid-template-columns: 13rem 1fr;
+    gap: 1.75rem;
+    padding: 2rem;
+  }
+
+  .ficha-contenido .afiche {
+    width: 100%;
+  }
+
+  .ficha-info h2 {
+    padding-right: 2.5rem;
+  }
+}
+
+/* ---------- Formularios (reutilizables: Contacto, Login, Admin, ...) ---------- */
+
+.contenedor-form {
+  max-width: 32rem;
+}
+
+.campo {
+  margin-bottom: 1.1rem;
+}
+
+.campo label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
+.campo input,
+.campo textarea,
+.campo select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--gris-2);
+  background: var(--negro-3);
+  color: var(--texto);
+  font: inherit;
+}
+
+/* El desplegable del <select> lo dibuja el navegador con fondo blanco por
+   defecto; como nuestro texto es claro, no se leía. Le damos fondo oscuro
+   a las opciones y avisamos que el tema es oscuro (color-scheme). */
+.campo select {
+  color-scheme: dark;
+}
+
+.campo select option {
+  background: var(--negro-4);
+  color: var(--texto);
+}
+
+.campo input:focus,
+.campo textarea:focus,
+.campo select:focus {
+  outline: 2px solid var(--naranja);
+  outline-offset: 1px;
+}
+
+/* Un campo con error se marca con borde rojo (usa el atributo aria-invalid) */
+.campo [aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.error {
+  margin: 0.35rem 0 0;
+  color: var(--error-claro);
+  font-size: 0.9rem;
+}
+
+button.boton {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+/* "button.boton" de arriba quita todos los bordes; al botón secundario hay
+   que devolvérselo (mismo selector con más especificidad que el anterior). */
+button.boton.boton-secundario {
+  border: 1px solid var(--gris-2);
+}
+
+/* ---------- Ayuda de usuarios de prueba (Login) ---------- */
+
+.ayuda-demo {
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px dashed var(--gris-2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.ayuda-demo h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.ayuda-demo ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+/* ---------- Zona cliente: funciones, resumen y comprobante ---------- */
+
+.grupo-funciones {
+  border: 1px solid var(--gris-1);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.grupo-funciones legend {
+  padding: 0 0.4rem;
+  font-weight: 600;
+}
+
+/* Cada función es una etiqueta clickeable que contiene el radio y el texto.
+   Se escribe ".campo .opcion-funcion" (más específico) porque la regla
+   ".campo label" de los formularios también le aplicaba y pisaba estos
+   valores (negrita, display:block, sin separación). */
+.campo .opcion-funcion {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0;
+  padding: 0.5rem 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+/* Los radios no deben ocupar el 100% de ancho como los inputs de texto */
+.campo .opcion-funcion input {
+  width: auto;
+  accent-color: var(--naranja);
+}
+
+.resumen {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem 1.25rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.resumen dt {
+  color: var(--naranja);
+  font-weight: 600;
+}
+
+.resumen dd {
+  margin: 0;
+}
+
+.comprobante {
+  border: 2px dashed var(--naranja);
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.comprobante h3 {
+  margin: 0.5rem 0;
+}
+
+.comprobante p {
+  margin: 0.25rem 0;
+}
+
+.comprobante-numero {
+  color: var(--naranja);
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Mapa de butacas ---------- */
+
+.sala {
+  max-width: 28rem;
+  margin: 1rem 0;
+}
+
+/* La "pantalla" del cine: una barra curva arriba del mapa */
+.pantalla {
+  text-align: center;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  padding: 0.4rem 0;
+  margin-bottom: 1.25rem;
+  color: var(--gris-4);
+  border-top: 4px solid var(--naranja);
+  border-radius: 50% 50% 0 0 / 12px 12px 0 0;
+}
+
+.fila-butacas {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.fila-letra {
+  width: 1.2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--gris-4);
+}
+
+.butaca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border-radius: 8px 8px 4px 4px;
+  font: inherit;
+  font-size: 0.75rem;
+  border: 1px solid var(--gris-2);
+  background: transparent;
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.butaca-libre:hover {
+  border-color: var(--naranja);
+}
+
+.butaca-seleccionada {
+  background: var(--degradado);
+  border-color: transparent;
+  color: var(--texto-sobre-naranja);
+  font-weight: 800;
+}
+
+/* Ocupada: gris con rayas, para no depender solo del color */
+.butaca-ocupada {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--negro-5),
+    var(--negro-5) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  border-color: var(--gris-1);
+  color: var(--gris-3);
+  cursor: not-allowed;
+}
+
+/* Foco visible para quien navega con teclado */
+.butaca:focus-visible {
+  outline: 2px solid var(--texto);
+  outline-offset: 2px;
+}
+
+.leyenda-butacas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  font-size: 0.85rem;
+}
+
+.leyenda-butacas li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.leyenda-butacas .butaca {
+  width: 1.2rem;
+  height: 1.2rem;
+  cursor: default;
+}
+
+.seleccion-resumen {
+  font-weight: 600;
+  color: var(--naranja);
+  min-height: 1.5em;
+}
+
+/* ---------- Candy y navegación entre pasos ---------- */
+
+.indicador-paso {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gris-4);
+}
+
+/* Botón que parece un link: para acciones secundarias como "Cancelar" */
+.boton-texto {
+  background: none;
+  border: none;
+  padding: 0.7rem 0.5rem;
+  font: inherit;
+  color: var(--gris-4);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.boton-texto:hover {
+  color: var(--error-claro);
+}
+
+.hero-acciones {
+  align-items: center; /* alinea los botones con el botón-texto */
+}
+
+.lista-candy {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.producto-candy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--negro-3);
+  border: 1px solid var(--gris-1);
+  border-radius: 10px;
+}
+
+.producto-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.9rem;
+}
+
+.producto-info strong {
+  font-size: 1rem;
+}
+
+.producto-info span {
+  color: var(--gris-4);
+}
+
+.producto-info .producto-precio {
+  color: var(--naranja);
+  font-weight: 600;
+}
+
+.producto-cantidad {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.producto-cantidad output {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.boton-cantidad {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 8px;
+  border: 1px solid var(--gris-2);
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.boton-cantidad:hover:not(:disabled) {
+  border-color: var(--naranja);
+  color: var(--naranja);
+}
+
+.boton-cantidad:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.boton-cantidad:focus-visible {
+  outline: 2px solid var(--naranja);
+  outline-offset: 2px;
+}
+
+.resumen-candy {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+/* ---------- Sesión en la barra de navegación ---------- */
+
+.navbar nav {
+  align-items: center;
+}
+
+.navbar-usuario {
+  color: var(--naranja);
+  font-weight: 600;
+}
+
+.navbar nav .boton-texto {
+  padding: 0;
+}
+
+/* ---------- Pestañas de la zona cliente ---------- */
+
+/* Los títulos de cada paso ahora son <h2>; se ven como los <h1> anteriores
+   (pero más chicos) para no repetir el h1 de la página. */
+.titulo-paso {
+  color: var(--naranja);
+  font-size: 2.1rem;
+  margin: 0.5rem 0;
+}
+
+.pestanas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gris-1);
+}
+
+.pestana {
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--gris-2);
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Se usa el atributo aria-pressed como selector: un solo dato sirve para
+   accesibilidad Y para el estilo */
+.pestana[aria-pressed='true'] {
+  background: var(--degradado);
+  border-color: transparent;
+  color: var(--texto-sobre-naranja);
+  font-weight: 700;
+}
+
+.pestana:focus-visible {
+  outline: 2px solid var(--naranja);
+  outline-offset: 2px;
+}
+
+.boton-chico {
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+/* ---------- Estrellas ---------- */
+
+/* Oculta algo a la vista pero lo deja disponible para lectores de pantalla */
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.estrellas {
+  border: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.estrellas legend {
+  padding: 0;
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+}
+
+.estrella {
+  position: relative;
+  display: inline-block;
+}
+
+/* El radio real queda invisible (pero sigue siendo enfocable con teclado) */
+.estrella input {
+  position: absolute;
+  opacity: 0;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+}
+
+.estrella label {
+  display: inline-block;
+  font-size: 2.2rem;
+  line-height: 1;
+  padding: 0 0.1rem;
+  color: var(--gris-3);
+  cursor: pointer;
+}
+
+.estrella label:hover,
+.estrella label.estrella-llena {
+  color: var(--naranja-claro);
+}
+
+.estrella input:focus-visible + label {
+  outline: 2px solid var(--texto);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.estrellas-fijas {
+  color: var(--naranja-claro);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.aviso {
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--naranja);
+  background: var(--naranja-tinte);
+  font-size: 0.9rem;
+}
+
+.contador {
+  margin: 0.25rem 0 0;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--gris-4);
+}
+
+/* ---------- Historial de calificaciones ---------- */
+
+.historial-titulo {
+  margin-top: 2.5rem;
+}
+
+.historial {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.historial-item {
+  padding: 0.85rem 1rem;
+  background: var(--negro-3);
+  border: 1px solid var(--gris-1);
+  border-radius: 10px;
+}
+
+.historial-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.historial-comentario {
+  margin: 0.5rem 0;
+  font-style: italic;
+}
+
+.historial-pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--gris-4);
+}
+
+.historial-pie .boton-texto {
+  padding: 0;
+}
+
+/* ---------- Mostrador del vendedor ---------- */
+
+.dos-columnas {
+  display: grid;
+  grid-template-columns: 1fr; /* en celular: una columna */
+  gap: 1.5rem;
+}
+
+/* media query: a partir de 800px de ancho, dos columnas
+   (productos a la izquierda, venta actual a la derecha) */
+@media (min-width: 800px) {
+  .dos-columnas {
+    grid-template-columns: 1fr 22rem;
+    align-items: start;
+  }
+
+  .venta-actual {
+    position: sticky; /* la venta actual queda a la vista al desplazarse */
+    top: 1rem;
+  }
+}
+
+.venta-actual {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+  background: var(--negro-2);
+}
+
+.sin-vinetas {
+  list-style: none;
+  padding-left: 0;
+}
+
+.total-venta {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--naranja);
+  margin: 0.75rem 0 1rem;
+}
+
+/* ---------- Tabla del admin ---------- */
+
+.tabla-contenedor {
+  overflow-x: auto;
+  border: 1px solid var(--gris-1);
+  border-radius: 10px;
+}
+
+.tabla-contenedor:focus-visible {
+  outline: 2px solid var(--naranja);
+}
+
+.tabla {
+  width: 100%;
+  min-width: 40rem;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.tabla th,
+.tabla td {
+  padding: 0.7rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--gris-1);
+}
+
+.tabla thead th {
+  color: var(--naranja);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tabla tbody tr:last-child th,
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.estado {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.estado-activa {
+  background: var(--ok-tinte);
+  color: var(--ok-claro);
+}
+
+.estado-baja {
+  background: var(--error-tinte);
+  color: var(--error-claro);
+}
+
+.tabla .boton-texto {
+  padding: 0;
+  white-space: nowrap; /* que "Dar de baja" no se parta en dos líneas */
+}
+
+/* ---------- Filtros del panel admin ---------- */
+
+.campo-filtro {
+  max-width: 18rem;
+}
+
+/* ---------- Edición de precio en la tabla de candy ---------- */
+
+.input-precio {
+  width: 6.5rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--gris-2);
+  background: var(--negro-3);
+  color: var(--texto);
+  font: inherit;
+}
+
+.input-precio[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.acciones-tabla {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+}
+
+/* ---------- Barra de disponibilidad (buscador de funciones) ---------- */
+
+.barra-pista {
+  display: flex;
+  height: 0.9rem;
+  background: var(--negro-5);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barra {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--naranja-claro), var(--naranja-fuerte));
+  border-radius: 999px;
+  transition: width 0.4s ease; /* la barra "crece" al cambiar el filtro */
+}
+
+/* ---------- Buscador de funciones ---------- */
+
+.filtros-busqueda {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0 1rem;
+  margin: 1rem 0 0.5rem;
+  padding: 1rem 1rem 0.2rem;
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+  background: var(--negro-2);
+}
+
+.resultados-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.resultados-cabecera .seleccion-resumen {
+  margin: 0;
+}
+
+.resultados {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+  max-width: 52rem;
+}
+
+.resultado {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  padding: 1rem 1.1rem;
+  background: var(--negro-3);
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+}
+
+.resultado-info {
+  flex: 1 1 14rem;
+}
+
+.resultado-info h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1.5rem;
+}
+
+.resultado-info p {
+  margin: 0.15rem 0;
+}
+
+.resultado-datos {
+  color: var(--naranja);
+  font-size: 0.85rem;
+}
+
+.resultado-compra {
+  flex: 0 1 14rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.resultado-precio {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.disponibilidad {
+  width: 100%;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.disp-ok .barra {
+  background: var(--ok);
+}
+
+.disp-poca {
+  color: var(--naranja-claro);
+}
+
+.disp-agotada {
+  color: var(--error-claro);
+  font-weight: 700;
+}
+
+.resultado .boton-chico {
+  margin-top: 0.2rem;
+}
+
+.boton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Accesibilidad: si la persona pidió menos movimiento en su sistema, sin animación */
+@media (prefers-reduced-motion: reduce) {
+  .barra {
+    transition: none;
+  }
+}
+
+/* ---------- Barra de navegación en pantallas chicas ---------- */
+
+/* Si no entra todo en una línea (celular con sesión iniciada), la navegación
+   pasa a una segunda línea en vez de apretarse y partir el logo. */
+.navbar {
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+.navbar-logo {
+  white-space: nowrap;
+}
+
+.navbar nav {
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
+
+.navbar nav a,
+.navbar-usuario {
+  white-space: nowrap;
+}
+
+/* ---------- Accesibilidad: enlace "saltar al contenido" ---------- */
+
+/* Fuera de la pantalla hasta que recibe el foco del teclado (Tab) */
+.saltar {
+  position: absolute;
+  left: 0.75rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  background: var(--naranja);
+  color: var(--texto-sobre-naranja);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.saltar:focus {
+  top: 0.75rem;
+}
+
+/* <main> recibe el foco por programa (no por el usuario): sin contorno raro */
+main:focus {
+  outline: none;
+}
+
+/* ---------- Venta de entradas en el mostrador ---------- */
+
+/* Selector de fila + asiento + botón, en una sola línea (se acomoda en celular) */
+.agregar-butaca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 1rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem 0.25rem;
+  border: 1px solid var(--gris-1);
+  border-radius: 10px;
+}
+
+.agregar-butaca legend {
+  padding: 0 0.4rem;
+  font-weight: 600;
+}
+
+.agregar-butaca .campo {
+  flex: 0 1 7rem;
+}
+
+.agregar-butaca .boton {
+  margin-bottom: 1.1rem;
+}
+
+/* ---------- Quiénes somos ---------- */
+
+/* Texto de la página: un ancho cómodo para leer (no se estira en pantallas anchas) */
+.bajada {
+  max-width: 40rem;
+  font-size: 1.05rem;
+}
+
+/* Misma idea que la cartelera: una grilla que se adapta al ancho de la pantalla */
+.integrantes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.integrante-card {
+  background: var(--negro-3);
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+}
+
+.integrante-avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fuente-titulos);
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.integrante-card h3 {
+  margin: 0.9rem 0 0.2rem;
+}
+
+.integrante-rol {
+  margin: 0;
+  color: var(--naranja);
+  font-size: 0.85rem;
+}
+
+/* Enlace dentro de un párrafo. Sin esto, el navegador lo pinta de azul, que sobre
+   el fondo oscuro casi no se lee. Va subrayado para que no dependa solo del color. */
+.enlace-texto {
+  color: var(--naranja);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.enlace-texto:hover {
+  color: var(--naranja-claro);
+}
+
+.enlace-texto:focus-visible {
+  outline: 2px solid var(--naranja);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---------- Logo ---------- */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  line-height: 1;
+}
+
+/* El símbolo: un cuadrado con degradé naranja y un "play" recortado adentro */
+.logo-simbolo {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.55rem;
+  background: var(--degradado);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 12px var(--naranja-brillo);
+}
+
+.logo-play {
+  width: 0.8rem;
+  height: 0.9rem;
+  margin-left: 0.15rem;
+  background: var(--texto-sobre-naranja);
+  clip-path: polygon(0 0, 100% 50%, 0 100%); /* un triángulo apuntando a la derecha */
+}
+
+.logo-texto {
+  font-family: var(--fuente-titulos);
+  font-weight: 800;
+  font-size: 1.85rem;
+  letter-spacing: 0.01em;
+  color: var(--texto);
+}
+
+.logo-i {
+  color: var(--naranja);
+}
+
+/* ---------- Pie de página ---------- */
+
+.pie {
+  margin-top: 3rem;
+  padding: 2rem max(1.5rem, calc((100% - 77rem) / 2)) 1.5rem;
+  background: var(--negro-0);
+  border-top: 1px solid var(--gris-1);
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 760px) {
+  .pie {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .pie-nota {
+    grid-column: 1 / -1;
+  }
+}
+
+.pie-marca p {
+  margin: 0.6rem 0 0;
+  color: var(--gris-3);
+}
+
+.pie-enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+}
+
+.pie-enlaces a {
+  color: var(--gris-4);
+  text-decoration: none;
+}
+
+.pie-enlaces a:hover {
+  color: var(--naranja);
+}
+
+.pie-enlaces a:focus-visible {
+  outline: 2px solid var(--naranja);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.pie-nota {
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gris-1);
+  font-size: 0.85rem;
+  color: var(--gris-3);
+}
+
+/* ---------- Landing: carta de presentación ---------- */
+
+.presentacion {
+  display: grid;
+  gap: 2rem;
+  margin: 1rem 0 3rem;
+  padding: 1.75rem 1.5rem;
+  background: linear-gradient(160deg, var(--negro-3), var(--negro-2));
+  border: 1px solid var(--gris-1);
+  border-radius: 18px;
+}
+
+@media (min-width: 880px) {
+  .presentacion {
+    grid-template-columns: 1.15fr 1fr;
+    gap: 3rem;
+    padding: 2.5rem;
+  }
+}
+
+.presentacion-carta h2 {
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  margin: 0 0 1rem;
+}
+
+.presentacion-carta p {
+  max-width: 38rem;
+  color: var(--gris-4);
+}
+
+.presentacion-carta .presentacion-kicker {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--naranja);
+}
+
+.presentacion-carta .firma {
+  margin: 1.5rem 0 0.5rem;
+  font-family: var(--fuente-titulos);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--texto);
+}
+
+.presentacion-carta .firma::before {
+  content: '— ';
+  color: var(--naranja);
+}
+
+/* Los tres pasos: una tarjeta por paso, con una franja naranja a la izquierda */
+.pasos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.paso {
+  padding: 1rem 1.25rem;
+  background: var(--negro-4);
+  border: 1px solid var(--gris-1);
+  border-left: 3px solid var(--naranja);
+  border-radius: 12px;
+}
+
+.paso-numero {
+  display: block;
+  font-family: var(--fuente-titulos);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--naranja);
+}
+
+.paso h3 {
+  margin: 0.1rem 0 0.3rem;
+}
+
+.paso p {
+  margin: 0;
+  color: var(--gris-4);
+}
+
+/* ---------- Detalles de diseño: tarjetas y botones ---------- */
+
+.integrante-card,
+.paso,
+.resultado {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.integrante-card {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.integrante-card:hover,
+.paso:hover {
+  transform: translateY(-3px);
+  border-color: var(--naranja-oscuro);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+.resultado:hover {
+  border-color: var(--naranja-oscuro);
+}
+
+.boton {
+  box-shadow: 0 4px 14px var(--naranja-brillo);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.boton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px var(--naranja-tinte);
+}
+
+.boton-secundario {
+  box-shadow: none;
+}
+
+.boton-secundario:hover:not(:disabled) {
+  border-color: var(--naranja);
+  box-shadow: none;
+}
+
+.boton:focus-visible {
+  outline: 2px solid var(--texto);
+  outline-offset: 3px;
+}
+
+/* Quien pidió menos movimiento en su sistema no ve estas animaciones */
+@media (prefers-reduced-motion: reduce) {
+  .afiche-card,
+  .afiche,
+  .integrante-card,
+  .paso,
+  .resultado,
+  .boton {
+    transition: none;
+  }
+
+  .afiche-card:hover,
+  .integrante-card:hover,
+  .paso:hover,
+  .boton:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ---------- Barra de navegación en celulares angostos ---------- */
+
+@media (max-width: 480px) {
+  .navbar {
+    padding-inline: 1rem;
+  }
+
+  .navbar nav {
+    gap: 0.4rem 0.85rem;
+    font-size: 0.92rem;
+  }
+
+  .logo-texto {
+    font-size: 1.6rem;
+  }
+
+  .logo-simbolo {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+}
+
+/* ---------- Código QR de la entrada ---------- */
+
+.entrada-qr {
+  margin: 1.25rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--gris-2); /* la "línea de corte" de una entrada */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+/* Fondo blanco: un QR tiene que ser oscuro sobre claro para poder leerse */
+.entrada-qr-codigo {
+  padding: 0.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  line-height: 0;
+}
+
+.entrada-qr-codigo svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.entrada-qr figcaption {
+  font-size: 0.9rem;
+  color: var(--gris-4);
+}
