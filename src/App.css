@@ -8,7 +8,7 @@
   flex-direction: column;
 }
 
-/* Barra de navegación: queda fija arriba al desplazarse, sobre el negro más profundo */
+/* Barra de navegación: queda fija arriba al desplazarse, sobre el grafito más profundo */
 .navbar {
   position: sticky;
   top: 0;
@@ -17,7 +17,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.85rem max(1.5rem, calc((100% - 77rem) / 2));
-  background: color-mix(in srgb, var(--negro-0) 92%, transparent);
+  background: color-mix(in srgb, var(--grafito-0) 92%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--gris-1);
 }
@@ -266,7 +266,7 @@ main {
   overflow: auto;
   border: 1px solid var(--naranja-oscuro);
   border-radius: 14px;
-  background: var(--negro-3);
+  background: var(--grafito-3);
   color: var(--texto);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
 }
@@ -328,7 +328,7 @@ body:has(dialog[open]) {
   height: 2.5rem;
   border: 1px solid var(--gris-2);
   border-radius: 50%;
-  background: var(--negro-2);
+  background: var(--grafito-2);
   color: var(--texto);
   font-size: 1.1rem;
   cursor: pointer;
@@ -383,7 +383,7 @@ body:has(dialog[open]) {
   padding: 0.65rem 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--gris-2);
-  background: var(--negro-3);
+  background: var(--grafito-3);
   color: var(--texto);
   font: inherit;
 }
@@ -396,7 +396,7 @@ body:has(dialog[open]) {
 }
 
 .campo select option {
-  background: var(--negro-4);
+  background: var(--grafito-4);
   color: var(--texto);
 }
 
@@ -587,8 +587,8 @@ button.boton.boton-secundario {
 .butaca-ocupada {
   background: repeating-linear-gradient(
     45deg,
-    var(--negro-5),
-    var(--negro-5) 4px,
+    var(--grafito-5),
+    var(--grafito-5) 4px,
     transparent 4px,
     transparent 8px
   );
@@ -675,7 +675,7 @@ button.boton.boton-secundario {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  background: var(--negro-3);
+  background: var(--grafito-3);
   border: 1px solid var(--gris-1);
   border-radius: 10px;
 }
@@ -902,7 +902,7 @@ button.boton.boton-secundario {
 
 .historial-item {
   padding: 0.85rem 1rem;
-  background: var(--negro-3);
+  background: var(--grafito-3);
   border: 1px solid var(--gris-1);
   border-radius: 10px;
 }
@@ -958,7 +958,7 @@ button.boton.boton-secundario {
   padding: 1rem 1.25rem;
   border: 1px solid var(--gris-1);
   border-radius: 12px;
-  background: var(--negro-2);
+  background: var(--grafito-2);
 }
 
 .sin-vinetas {
@@ -1047,7 +1047,7 @@ button.boton.boton-secundario {
   padding: 0.4rem 0.5rem;
   border-radius: 6px;
   border: 1px solid var(--gris-2);
-  background: var(--negro-3);
+  background: var(--grafito-3);
   color: var(--texto);
   font: inherit;
 }
@@ -1067,7 +1067,7 @@ button.boton.boton-secundario {
 .barra-pista {
   display: flex;
   height: 0.9rem;
-  background: var(--negro-5);
+  background: var(--grafito-5);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1090,7 +1090,7 @@ button.boton.boton-secundario {
   padding: 1rem 1rem 0.2rem;
   border: 1px solid var(--gris-1);
   border-radius: 12px;
-  background: var(--negro-2);
+  background: var(--grafito-2);
 }
 
 .resultados-cabecera {
@@ -1122,7 +1122,7 @@ button.boton.boton-secundario {
   flex-wrap: wrap;
   gap: 0.75rem 1.5rem;
   padding: 1rem 1.1rem;
-  background: var(--negro-3);
+  background: var(--grafito-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
 }
@@ -1287,7 +1287,7 @@ main:focus {
 }
 
 .integrante-card {
-  background: var(--negro-3);
+  background: var(--grafito-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
   padding: 1.25rem 1rem;
@@ -1380,7 +1380,7 @@ main:focus {
 .pie {
   margin-top: 3rem;
   padding: 2rem max(1.5rem, calc((100% - 77rem) / 2)) 1.5rem;
-  background: var(--negro-0);
+  background: var(--grafito-0);
   border-top: 1px solid var(--gris-1);
   display: grid;
   gap: 1.25rem;
@@ -1438,7 +1438,7 @@ main:focus {
   gap: 2rem;
   margin: 1rem 0 3rem;
   padding: 1.75rem 1.5rem;
-  background: linear-gradient(160deg, var(--negro-3), var(--negro-2));
+  background: linear-gradient(160deg, var(--grafito-3), var(--grafito-2));
   border: 1px solid var(--gris-1);
   border-radius: 18px;
 }
@@ -1496,7 +1496,7 @@ main:focus {
 
 .paso {
   padding: 1rem 1.25rem;
-  background: var(--negro-4);
+  background: var(--grafito-4);
   border: 1px solid var(--gris-1);
   border-left: 3px solid var(--naranja);
   border-radius: 12px;

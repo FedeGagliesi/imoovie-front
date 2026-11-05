@@ -252,7 +252,7 @@ Cada concepto se explica en la parte de la bitácora donde apareció por primera
 | Ninguno nuevo: reutiliza componente, props y `.map()` + `key` | Parte 16 |
 | Ninguno nuevo: diseño con variables CSS, un componente sin props (`Logo`) y `aria-current` con `useLocation` (que ya se usaba) | Parte 17 |
 | Usar un componente de una librería externa pasándole props (`<QRCodeSVG>`) | Parte 18 |
-| Ninguno nuevo: cambiar una paleta entera modificando solo los valores de las variables CSS | Partes 19 y 20 |
+| Ninguno nuevo: cambiar una paleta entera modificando solo los valores de las variables CSS | Partes 19, 20 y 23 |
 | Una idea nueva y chica: `ref` con función para abrir un `<dialog>` nativo con `showModal()` | Parte 21 |
 
 ---
@@ -934,7 +934,7 @@ Butacas: A1, A3
 
 ## Parte 19 · Paleta Grafito (un fondo más suave y nítido)
 
-> **Esta paleta fue reemplazada en la Parte 20.** Se deja como parte del historial de decisiones de diseño.
+> **Esta paleta fue reemplazada en la Parte 20, y volvió a ser la vigente en la Parte 23.** Se deja el historial completo de decisiones de diseño.
 
 **Qué se hizo:** la página se veía demasiado oscura: negro casi puro con naranja resultaba pesado. Se reemplazó la paleta de la Parte 17 por una nueva, llamada **Grafito**: grises oscuros en lugar de negro, con el naranja de marca igual que antes. El gris es más suave a la vista y deja que el texto y el naranja se vean más nítidos.
 
@@ -965,6 +965,8 @@ Butacas: A1, A3
 ---
 
 ## Parte 20 · Decisión final de la paleta: fondo negro, texto blanco y detalles naranjas
+
+> **Reemplazada en la Parte 23:** el grupo decidió volver a la paleta Grafito. Se deja como historial.
 
 **Qué se hizo:** después de probar varias alternativas (ver la tabla de abajo), la decisión final fue **fondo negro, texto blanco y los detalles en naranja**. Se aplicó a toda la web. Los detalles en naranja son los títulos, los botones, los enlaces, los bordes de acento, los números de los pasos y los resplandores.
 
@@ -1056,3 +1058,26 @@ Solo se agregaron tres cosas a mano: avisarle a React cuando se cierra (`onClose
 **Verificación:** se probó la versión compilada con un servidor que imita a Pages (entrar directo a `/imoovie-front/login`, navegar por el menú, favicon y archivos sin errores) y después el sitio real en internet.
 
 **Archivos nuevos:** `.github/workflows/deploy.yml`. **Tocados:** `vite.config.js`, `src/App.jsx`, `.gitignore` y `DOCUMENTACION.md`.
+
+---
+
+## Parte 23 · Vuelve la paleta Grafito
+
+**Qué se hizo:** se aplicó de nuevo la paleta **Grafito** (la de la Parte 19) a toda la web, en lugar de la de fondo negro de la Parte 20. Los fondos son grises oscuros, el texto es casi blanco y los detalles siguen en naranja.
+
+**Qué cambió en el código** (solo CSS, ningún concepto de React nuevo):
+
+| Dónde | Cambio |
+|---|---|
+| `src/index.css` | Nuevos valores de la paleta: `--grafito-0…5` = `#1B1C1F`, `#232428`, `#2B2C31`, `#34353B`, `#3D3E45`, `#4A4B53`; grises `--gris-1…4` = `#4A4B53`, `#8A8B94`, `#B0B1BA`, `#D0D0D6`; `--texto` = `#F6F6F4`. Los naranjas, los colores de estado y las tipografías no se tocaron. |
+| `src/App.css` | Las variables `--negro-0…5` se renombraron a `--grafito-0…5` (19 usos) para que el nombre siga describiendo el color. |
+| `index.html` | `theme-color` (la barra del navegador en el celular) pasó a `#1B1C1F`. |
+
+Como los colores nuevos de la cartelera estilo cine (Parte 21) ya estaban escritos con variables, se adaptaron solos: es la ventaja de tener la paleta en un único lugar.
+
+**Verificación:**
+
+- Un script recorrió todo el texto visible de 9 estados de pantalla (landing, ficha de película abierta, contacto y login con errores, Quiénes somos, 404 y las zonas de cliente, vendedor y admin), calculó el color real de la letra y del fondo que tiene detrás (incluidos degradés) y lo comparó con el mínimo WCAG (4,5:1; 3:1 para texto grande). **Ningún texto queda por debajo; el peor caso es 5,24:1.**
+- `npm run lint` sin avisos y `npm run build` correcto.
+
+**Archivos tocados:** `src/index.css`, `src/App.css`, `index.html` y `DOCUMENTACION.md`. No hay archivos nuevos.

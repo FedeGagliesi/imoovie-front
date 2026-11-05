@@ -2,43 +2,43 @@
    Las "variables CSS" (--algo) nos dejan definir un valor UNA vez
    y usarlo en todo el proyecto con var(--algo).
 
-   La paleta es: FONDO NEGRO, TEXTO BLANCO y DETALLES EN NARANJA (el color de la
-   marca). Los negros se usan en capas para dar profundidad y los grises son solo
-   de apoyo (bordes y textos secundarios), sin color, para no competir con el naranja. */
+   La paleta se llama GRAFITO: fondos en grises oscuros (no negro puro), texto casi
+   blanco y DETALLES EN NARANJA (el color de la marca). Los grafitos se usan en capas
+   para dar profundidad y los grises son solo de apoyo (bordes y textos secundarios). */
 
 :root {
-  /* ---------- NEGROS: de más profundo a más claro ----------
+  /* ---------- GRAFITOS: de más profundo a más claro ----------
      Se usan en capas: cuanto más "arriba" está un elemento, más claro es su fondo.
-       negro-0  barra de navegación y pie de página
-       negro-1  fondo de la página
-       negro-2  paneles grandes
-       negro-3  tarjetas
-       negro-4  campos, tarjetas elevadas, opciones de listas
-       negro-5  pistas de barras y rayas (no lleva texto encima) */
-  --negro-0: #000000;
-  --negro-1: #050505;
-  --negro-2: #0d0d0d;
-  --negro-3: #141414;
-  --negro-4: #1c1c1c;
-  --negro-5: #2b2b2b;
+       grafito-0  barra de navegación y pie de página
+       grafito-1  fondo de la página
+       grafito-2  paneles grandes
+       grafito-3  tarjetas
+       grafito-4  campos, tarjetas elevadas, opciones de listas
+       grafito-5  pistas de barras y rayas (no lleva texto encima) */
+  --grafito-0: #1b1c1f;
+  --grafito-1: #232428;
+  --grafito-2: #2b2c31;
+  --grafito-3: #34353b;
+  --grafito-4: #3d3e45;
+  --grafito-5: #4a4b53;
 
-  /* ---------- GRISES (neutros, sin color) ----------
+  /* ---------- GRISES (ligeramente fríos, para acompañar al grafito) ----------
      gris-1  bordes sutiles
      gris-2  bordes de campos y botones (≥ 3:1 sobre las superficies, para que se vean)
      gris-3  texto tenue
      gris-4  texto secundario */
-  --gris-1: #2f2f2f;
-  --gris-2: #707070;
-  --gris-3: #a8a8a8;
-  --gris-4: #d6d6d6;
+  --gris-1: #4a4b53;
+  --gris-2: #8a8b94;
+  --gris-3: #b0b1ba;
+  --gris-4: #d0d0d6;
 
-  --texto: #ffffff; /* texto principal: blanco */
+  --texto: #f6f6f4; /* texto principal: blanco apenas cálido */
 
   /* ---------- NARANJAS ---------- */
   --naranja-claro: #ffb12b;
   --naranja: #ff8c12; /* el color de la marca */
   --naranja-fuerte: #ff7a0a;
-  --naranja-oscuro: #b85400; /* para bordes y detalles de acento (no para texto sobre negro) */
+  --naranja-oscuro: #b85400; /* para bordes y detalles de acento (no para texto sobre grafito) */
   --naranja-tinte: rgba(255, 140, 18, 0.12); /* fondo suave para avisos */
   --naranja-brillo: rgba(255, 140, 18, 0.12); /* resplandor de fondo, muy suave */
   --degradado: linear-gradient(135deg, var(--naranja-claro), var(--naranja-fuerte));
@@ -65,9 +65,9 @@
 
 body {
   margin: 0;
-  /* Un resplandor naranja muy suave arriba de todo, sobre el fondo negro */
+  /* Un resplandor naranja muy suave arriba de todo, sobre el fondo grafito */
   background: radial-gradient(900px 420px at 50% -80px, var(--naranja-brillo), transparent 70%),
-    var(--negro-1);
+    var(--grafito-1);
   background-repeat: no-repeat;
   color: var(--texto);
   font-family: var(--fuente-texto);
