@@ -1034,3 +1034,25 @@ Solo se agregaron tres cosas a mano: avisarle a React cuando se cierra (`onClose
 
 **Archivos nuevos:** `src/components/Afiche.jsx`, `src/components/FichaPelicula.jsx`.
 **Archivos tocados:** `src/components/PeliculaCard.jsx` (reescrita), `src/pages/Landing.jsx`, `src/App.css` (se reemplazaron los estilos `.pelicula-*` por los del afiche y la ficha) y `DOCUMENTACION.md`.
+
+---
+
+## Parte 22 · Publicación en GitHub Pages
+
+**Qué se hizo:** el proyecto se subió a GitHub (repositorio `FedeGagliesi/imoovie-front`) y se publicó en **https://fedegagliesi.github.io/imoovie-front/**. Cada vez que se sube un cambio a la rama `main`, GitHub compila y publica el sitio solo.
+
+**Qué hubo que ajustar** (no se agregó ningún concepto de React nuevo):
+
+| Problema | Solución | Dónde |
+|---|---|---|
+| El sitio no vive en la raíz del dominio, sino en la subcarpeta `/imoovie-front/` | `base: '/imoovie-front/'` al compilar (en desarrollo sigue siendo `/`, así que `npm run dev` funciona igual) | `vite.config.js` |
+| El router tiene que saber esa subcarpeta | `<BrowserRouter basename={import.meta.env.BASE_URL}>` | `src/App.jsx` |
+| Si alguien entra o recarga en `/imoovie-front/login`, GitHub Pages no encuentra ese archivo | Al publicar se copia `index.html` como `404.html`: GitHub la muestra y React Router dibuja la pantalla correcta | `.github/workflows/deploy.yml` |
+
+**Cómo se publica:** el archivo `.github/workflows/deploy.yml` es una receta de GitHub Actions: instala dependencias (`npm ci`), compila (`npm run build`), copia el `404.html` y publica la carpeta `dist`. Para que GitHub Pages sea gratis el repositorio tiene que ser **público**.
+
+**Datos de la versión publicada:** como no hay backend, los datos viven en el navegador de cada visitante (localStorage). Cada persona que abra el link ve los datos iniciales y sus cambios no los ve nadie más. Los usuarios de prueba son los de siempre (`cliente/cliente123`, `vendedor/vendedor123`, `admin/admin123`).
+
+**Verificación:** se probó la versión compilada con un servidor que imita a Pages (entrar directo a `/imoovie-front/login`, navegar por el menú, favicon y archivos sin errores) y después el sitio real en internet.
+
+**Archivos nuevos:** `.github/workflows/deploy.yml`. **Tocados:** `vite.config.js`, `src/App.jsx`, `.gitignore` y `DOCUMENTACION.md`.
