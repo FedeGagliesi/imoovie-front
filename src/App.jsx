@@ -25,9 +25,12 @@ import Vendedor from './pages/Vendedor'
 import Admin from './pages/Admin'
 import NotFound from './pages/NotFound'
 
+// basename: la carpeta donde está publicado el sitio (ver vite.config.js).
+// Vite la entrega en import.meta.env.BASE_URL: "/" en desarrollo y
+// "/imoovie-front/" en la versión publicada en GitHub Pages.
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <TituloDePagina />
 
       {/* Enlace "saltar al contenido": queda oculto hasta que se lo enfoca con
