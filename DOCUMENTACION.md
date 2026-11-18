@@ -1059,6 +1059,8 @@ Una enseñanza de las pruebas: con **fondo blanco**, un script de contraste dete
 
 ## Parte 23 · Vuelve la paleta Grafito
 
+> **Reemplazada en la Parte 24:** la versión 2 vuelve al fondo negro. Se deja como historial.
+
 **Qué se hizo:** se aplicó de nuevo la paleta **Grafito** (la de la Parte 19) a toda la web, en lugar de la de fondo negro de la Parte 20. Los fondos son grises oscuros, el texto es casi blanco y los detalles siguen en naranja.
 
 **Qué cambió en el código** (solo CSS, ningún concepto de React nuevo):
@@ -1082,6 +1084,8 @@ Como los colores nuevos de la cartelera estilo cine (Parte 21) ya estaban escrit
 
 ## Parte 24 · Versión 2: compra por pasos, salas, reportes y validación de entradas
 
+> **Ramas del repositorio:** `version-1` guarda la versión anterior (cartelera con ficha emergente) y `version-2` / `main` tienen esta versión.
+
 **Qué se hizo:** se integró la versión 2 del frontend sobre la base que ya estaba publicada. Sigue siendo solo frontend con datos simulados, pero ahora replica toda la API del backend (ver *Cobertura de la API del backend*).
 
 **Qué cambió respecto de la versión 1:**
@@ -1095,10 +1099,10 @@ Como los colores nuevos de la cartelera estilo cine (Parte 21) ya estaban escrit
 | Vendedor | Se suman *Validar entrada* (cada código sirve una sola vez) y *Mis ventas*. |
 | Admin | Se suman *Salas* (butacas automáticas), *Entradas* y *Reportes*. |
 
-**Qué se conservó de las partes anteriores:** la paleta Grafito (Parte 23) y la publicación en GitHub Pages (Parte 22: `base`, `basename` del router y workflow). Al integrar, las variables `--negro-*` que traía la versión 2 se renombraron a `--grafito-*`, y se sacaron los estilos de la ficha emergente, que ya no se usa.
+**Paleta:** la versión 2 usa la paleta de **fondo negro** (la de la Parte 20), así que queda como paleta vigente y la Parte 23 (Grafito) pasa a ser historial. Lo único que se conservó de la publicación es la configuración de GitHub Pages (Parte 22: `base`, `basename` del router y workflow).
 
 **Ajuste al integrar:** el código de la entrada (el que se pega en *Consultar entrada* y en *Validar entrada*) solo estaba dentro del QR; ahora también se muestra en texto debajo del QR.
 
-**Verificación:** `npm run lint` sin avisos y `npm run build` correcto. Se recorrió en el navegador: login de los tres roles, compra completa (butacas → candy → pago → comprobante con QR), *Mis entradas / pedidos / estadísticas*, consulta de una entrada por su código, validación en puerta (la segunda lectura se rechaza) y las siete pestañas del admin. Sin errores en consola.
+**Verificación:** `npm run lint` sin avisos y `npm run build` correcto. Se recorrió en el navegador: login de los tres roles, compra completa (butacas → candy → pago → comprobante con QR), *Mis entradas / pedidos / estadísticas*, consulta de una entrada por su código, validación en puerta (la segunda lectura se rechaza) y las siete pestañas del admin. Sin errores en consola. (Se probó con la paleta Grafito; la paleta negra solo cambia los valores de las variables de color.)
 
-**Archivos tocados al integrar:** `DOCUMENTACION.md`, `src/App.css`, `src/components/EntradaQR.jsx`.
+**Archivos tocados al integrar:** `src/App.jsx` (`basename`), `vite.config.js` (`base`), `.github/workflows/deploy.yml`, `src/components/EntradaQR.jsx` y `src/App.css` (el código de la entrada en texto) y `DOCUMENTACION.md`. El resto del código es el de la versión 2 tal cual.

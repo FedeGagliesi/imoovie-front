@@ -8,7 +8,7 @@
   flex-direction: column;
 }
 
-/* Barra de navegación: queda fija arriba al desplazarse, sobre el grafito más profundo */
+/* Barra de navegación: queda fija arriba al desplazarse, sobre el negro más profundo */
 .navbar {
   position: sticky;
   top: 0;
@@ -17,7 +17,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.85rem max(1.5rem, calc((100% - 77rem) / 2));
-  background: color-mix(in srgb, var(--grafito-0) 92%, transparent);
+  background: color-mix(in srgb, var(--negro-0) 92%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--gris-1);
 }
@@ -132,7 +132,7 @@ main {
 }
 
 .pelicula-card {
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
   padding: 1rem;
@@ -182,7 +182,7 @@ main {
   padding: 0.65rem 0.75rem;
   border-radius: 8px;
   border: 1px solid var(--gris-2);
-  background: var(--grafito-3);
+  background: var(--negro-3);
   color: var(--texto);
   font: inherit;
 }
@@ -195,7 +195,7 @@ main {
 }
 
 .campo select option {
-  background: var(--grafito-4);
+  background: var(--negro-4);
   color: var(--texto);
 }
 
@@ -386,8 +386,8 @@ button.boton.boton-secundario {
 .butaca-ocupada {
   background: repeating-linear-gradient(
     45deg,
-    var(--grafito-5),
-    var(--grafito-5) 4px,
+    var(--negro-5),
+    var(--negro-5) 4px,
     transparent 4px,
     transparent 8px
   );
@@ -474,7 +474,7 @@ button.boton.boton-secundario {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 10px;
 }
@@ -701,7 +701,7 @@ button.boton.boton-secundario {
 
 .historial-item {
   padding: 0.85rem 1rem;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 10px;
 }
@@ -757,7 +757,7 @@ button.boton.boton-secundario {
   padding: 1rem 1.25rem;
   border: 1px solid var(--gris-1);
   border-radius: 12px;
-  background: var(--grafito-2);
+  background: var(--negro-2);
 }
 
 .sin-vinetas {
@@ -846,7 +846,7 @@ button.boton.boton-secundario {
   padding: 0.4rem 0.5rem;
   border-radius: 6px;
   border: 1px solid var(--gris-2);
-  background: var(--grafito-3);
+  background: var(--negro-3);
   color: var(--texto);
   font: inherit;
 }
@@ -866,7 +866,7 @@ button.boton.boton-secundario {
 .barra-pista {
   display: flex;
   height: 0.9rem;
-  background: var(--grafito-5);
+  background: var(--negro-5);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -889,7 +889,7 @@ button.boton.boton-secundario {
   padding: 1rem 1rem 0.2rem;
   border: 1px solid var(--gris-1);
   border-radius: 12px;
-  background: var(--grafito-2);
+  background: var(--negro-2);
 }
 
 .resultados-cabecera {
@@ -921,7 +921,7 @@ button.boton.boton-secundario {
   flex-wrap: wrap;
   gap: 0.75rem 1.5rem;
   padding: 1rem 1.1rem;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
 }
@@ -1086,7 +1086,7 @@ main:focus {
 }
 
 .integrante-card {
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
   padding: 1.25rem 1rem;
@@ -1179,7 +1179,7 @@ main:focus {
 .pie {
   margin-top: 3rem;
   padding: 2rem max(1.5rem, calc((100% - 77rem) / 2)) 1.5rem;
-  background: var(--grafito-0);
+  background: var(--negro-0);
   border-top: 1px solid var(--gris-1);
   display: grid;
   gap: 1.25rem;
@@ -1237,7 +1237,7 @@ main:focus {
   gap: 2rem;
   margin: 1rem 0 3rem;
   padding: 1.75rem 1.5rem;
-  background: linear-gradient(160deg, var(--grafito-3), var(--grafito-2));
+  background: linear-gradient(160deg, var(--negro-3), var(--negro-2));
   border: 1px solid var(--gris-1);
   border-radius: 18px;
 }
@@ -1295,7 +1295,7 @@ main:focus {
 
 .paso {
   padding: 1rem 1.25rem;
-  background: var(--grafito-4);
+  background: var(--negro-4);
   border: 1px solid var(--gris-1);
   border-left: 3px solid var(--naranja);
   border-radius: 12px;
@@ -1493,7 +1493,7 @@ main:focus {
   aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: 12px;
-  background: var(--grafito-4);
+  background: var(--negro-4);
 }
 
 .afiche-img,
@@ -1575,7 +1575,7 @@ main:focus {
   flex-direction: column;
   padding: 0;
   overflow: hidden;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
 }
@@ -1708,7 +1708,7 @@ main:focus {
   padding: 0.7rem 0.5rem;
   border: 1px solid var(--gris-1);
   border-radius: 8px;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   color: var(--texto);
   cursor: pointer;
   display: flex;
@@ -1805,7 +1805,7 @@ main:focus {
   padding: 0.55rem 0.9rem;
   border: 1px solid var(--gris-1);
   border-radius: 8px;
-  background: var(--grafito-4);
+  background: var(--negro-4);
   color: var(--texto);
   font-size: 1rem;
   cursor: pointer;
@@ -1882,7 +1882,7 @@ main:focus {
   position: sticky;
   top: 1rem;
   padding: 1.25rem;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
 }
@@ -1949,7 +1949,7 @@ main:focus {
   gap: 1rem;
   margin-top: 2rem;
   padding: 0.9rem 1.1rem;
-  background: var(--grafito-2);
+  background: var(--negro-2);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
 }
@@ -1983,7 +1983,7 @@ main:focus {
 /* ---------- Mapa de la sala ---------- */
 .sala-mapa {
   padding: 1.25rem 0.5rem 1rem;
-  background: var(--grafito-2);
+  background: var(--negro-2);
   border-radius: 12px;
   border: 1px solid var(--gris-1);
   overflow-x: auto;
@@ -2109,7 +2109,7 @@ main:focus {
   flex-direction: column;
   gap: 0.35rem;
   padding: 0.75rem;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
 }
@@ -2197,7 +2197,7 @@ main:focus {
   padding: 1rem;
   border: 1px solid var(--gris-1);
   border-radius: 10px;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   cursor: pointer;
 }
 
@@ -2251,7 +2251,7 @@ main:focus {
 
 .compra-tarjeta {
   padding: 1rem 1.1rem;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
   border-radius: 12px;
 }
@@ -2331,7 +2331,7 @@ main:focus {
   height: 2.6rem;
   border-radius: 50%;
   border: 1px solid var(--gris-1);
-  background: var(--grafito-4);
+  background: var(--negro-4);
   color: var(--texto);
   font-size: 1.5rem;
   line-height: 1;
@@ -2360,7 +2360,7 @@ main:focus {
   bottom: 0;
   height: 100%;
   border-radius: 14px;
-  background: var(--grafito-4);
+  background: var(--negro-4);
   border: 1px solid var(--gris-1);
   z-index: -1;
 }
@@ -2376,7 +2376,7 @@ main:focus {
 .pila-qr-activa {
   position: relative;
   z-index: 1;
-  background: var(--grafito-3);
+  background: var(--negro-3);
   border-radius: 14px;
   padding: 0.5rem;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
