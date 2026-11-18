@@ -1,79 +1,97 @@
-// FUNCIONES (mock): cada función es una película, en una sucursal, un día y
-// una hora, en una sala y con un precio.
+// FUNCIONES (mock). Espejan la entidad Funcion del backend: una película, en una
+// sala, un día y una hora, con un precio y sus opciones (idioma, subtítulos,
+// doblaje y accesibilidad).
 //
-//   peliculaId  → conecta con una película (data/peliculas.js)
-//   sucursalId  → conecta con una sucursal (data/sucursales.js)
+//   peliculaId → conecta con una película (data/peliculas.js)
+//   salaId     → conecta con una sala (data/salas.js); la sala dice la sucursal
 // Es la misma idea que una clave foránea en una base de datos.
 //
-// El admin puede agregar y eliminar funciones, así que la lista "real" vive en
-// localStorage: obtenerFunciones() / guardarFunciones(lista).
+// La lista "real" vive en localStorage: obtenerFunciones() / guardarFunciones(lista).
+//
+// Reglas del backend que se copian acá:
+//   - Una sala no puede tener dos funciones solapadas. El intervalo ocupado va
+//     desde el horario de inicio hasta inicio + duración + 15 minutos de limpieza.
+//   - No se programan funciones con horario pasado.
+//   - Una función "comenzó" cuando llega su horario: ya no se vende ni se reprograma.
+//   - Dar de baja una función es baja lógica (activa: false).
 
 import { leer, guardar } from './almacenamiento'
-import { formatearDia } from './formato'
+import { formatearDia, fechaHoraMs, sumarDiasISO, ahora, horaDe } from './formato'
 
 const CLAVE = 'imoovie-funciones'
 
-// ---------- Mapa de la sala ----------
-// Todas las salas tienen 6 filas (A a F) y 8 butacas por fila.
-// Una butaca se identifica con fila + número: "C5" = fila C, butaca 5.
-export const FILAS = ['A', 'B', 'C', 'D', 'E', 'F']
-export const COLUMNAS = 8
-export const SALAS = ['Sala 1', 'Sala 2', 'Sala 3', 'Sala 4']
+export const MINUTOS_ENTRE_FUNCIONES = 15
+export const IDIOMAS = ['Español', 'Inglés', 'Portugués']
+// Formato de proyección de la función: lo elige el cliente junto con el horario.
+export const FORMATOS = ['2D', '3D', '4D', 'VIP']
 
-// Devuelve la lista de butacas YA OCUPADAS de una función.
-// Simulamos las ocupadas con una cuenta fija: así una misma función siempre
-// muestra las mismas butacas ocupadas, y cada función tiene las suyas.
-export function butacasOcupadas(funcionId) {
-  const ocupadas = []
-  FILAS.forEach((fila, indiceFila) => {
-    for (let numero = 1; numero <= COLUMNAS; numero++) {
-      // % es el "resto de la división": da un patrón que cambia con la fila,
-      // el número y la función, sin usar números al azar.
-      if ((indiceFila * 7 + numero * 3 + funcionId * 2) % 5 === 0) {
-        ocupadas.push(fila + numero)
-      }
-    }
-  })
-  return ocupadas
-}
-
-export const TOTAL_BUTACAS = FILAS.length * COLUMNAS // 6 × 8 = 48
-
-// Todas las butacas que NO se pueden elegir en una función: las "ocupadas"
-// simuladas de arriba MÁS las que ya compraron clientes reales.
-//   - flatMap: como .map(), pero junta todos los arrays resultantes en uno solo
-//     (cada compra tiene su propia lista de butacas).
-//   - new Set(...): una colección sin elementos repetidos; sirve para sacar duplicados.
-// Las compras de ejemplo se ignoran: sus butacas son inventadas.
-export function butacasNoDisponibles(funcionId, compras) {
-  const vendidas = compras
-    .filter((c) => c.funcionId === funcionId && !c.ejemplo)
-    .flatMap((c) => c.butacas)
-  return [...new Set([...butacasOcupadas(funcionId), ...vendidas])]
-}
-
-// La fecha se guarda como texto "AAAA-MM-DD" y la hora como "HH:MM": es el
-// formato que usan los <input type="date"> y <input type="time">.
+// Las funciones de ejemplo se programan a partir de HOY, así siempre hay funciones
+// a la venta (si las fechas fueran fijas, quedarían en el pasado).
 export const funcionesIniciales = [
-  { id: 1, peliculaId: 1, sucursalId: 1, fecha: '2026-11-06', hora: '18:30', sala: 'Sala 1', precio: 6500 },
-  { id: 2, peliculaId: 1, sucursalId: 2, fecha: '2026-11-07', hora: '21:00', sala: 'Sala 1', precio: 7500 },
-  { id: 3, peliculaId: 2, sucursalId: 1, fecha: '2026-11-06', hora: '20:00', sala: 'Sala 2', precio: 7500 },
-  { id: 4, peliculaId: 2, sucursalId: 2, fecha: '2026-11-08', hora: '17:15', sala: 'Sala 2', precio: 6500 },
-  { id: 5, peliculaId: 3, sucursalId: 1, fecha: '2026-11-07', hora: '23:00', sala: 'Sala 3', precio: 7500 },
-  { id: 6, peliculaId: 3, sucursalId: 2, fecha: '2026-11-08', hora: '21:30', sala: 'Sala 3', precio: 7500 },
-  { id: 7, peliculaId: 4, sucursalId: 1, fecha: '2026-11-06', hora: '16:00', sala: 'Sala 1', precio: 6000 },
-  { id: 8, peliculaId: 4, sucursalId: 2, fecha: '2026-11-08', hora: '15:30', sala: 'Sala 1', precio: 6000 },
+  { id: 1, peliculaId: 1, salaId: 1, fecha: sumarDiasISO(1), hora: '18:30', idioma: 'Español', precio: 6500, conSubtitulos: true, conDoblaje: false, conAccesibilidad: false, formato: '2D', activa: true },
+  { id: 2, peliculaId: 2, salaId: 2, fecha: sumarDiasISO(1), hora: '20:00', idioma: 'Inglés', precio: 7500, conSubtitulos: true, conDoblaje: false, conAccesibilidad: false, formato: '3D', activa: true },
+  { id: 3, peliculaId: 3, salaId: 3, fecha: sumarDiasISO(2), hora: '23:00', idioma: 'Español', precio: 7500, conSubtitulos: false, conDoblaje: false, conAccesibilidad: true, formato: 'VIP', activa: true },
+  { id: 4, peliculaId: 4, salaId: 1, fecha: sumarDiasISO(2), hora: '16:00', idioma: 'Español', precio: 6000, conSubtitulos: false, conDoblaje: true, conAccesibilidad: false, formato: '2D', activa: true },
+  { id: 5, peliculaId: 1, salaId: 4, fecha: sumarDiasISO(3), hora: '21:00', idioma: 'Español', precio: 7500, conSubtitulos: false, conDoblaje: false, conAccesibilidad: false, formato: '4D', activa: true },
+  { id: 6, peliculaId: 2, salaId: 5, fecha: sumarDiasISO(4), hora: '17:15', idioma: 'Inglés', precio: 6500, conSubtitulos: true, conDoblaje: false, conAccesibilidad: false, formato: '3D', activa: true },
+  { id: 7, peliculaId: 3, salaId: 4, fecha: sumarDiasISO(4), hora: '21:30', idioma: 'Español', precio: 7500, conSubtitulos: false, conDoblaje: false, conAccesibilidad: false, formato: '2D', activa: true },
+  { id: 8, peliculaId: 4, salaId: 5, fecha: sumarDiasISO(5), hora: '15:30', idioma: 'Español', precio: 6000, conSubtitulos: false, conDoblaje: false, conAccesibilidad: true, formato: 'VIP', activa: true },
 ]
 
+// Las funciones guardadas antes de existir el formato se leen como 2D.
 export function obtenerFunciones() {
-  return leer(CLAVE, funcionesIniciales)
+  return leer(CLAVE, funcionesIniciales).map((f) => ({ formato: '2D', ...f }))
 }
 
 export function guardarFunciones(lista) {
   guardar(CLAVE, lista)
 }
 
-// Texto corto de una función: "Vie 6/11 · 18:30 · Sala 1"
-export function etiquetaFuncion(funcion) {
-  return `${formatearDia(funcion.fecha)} · ${funcion.hora} · ${funcion.sala}`
+// Momento de inicio de una función, en milisegundos.
+export function inicioFuncion(funcion) {
+  return fechaHoraMs(funcion.fecha, funcion.hora)
+}
+
+// ¿Ya llegó el horario de la función? Una función que comenzó no se vende,
+// no se reprograma ni se cancela; solo se puede calificar.
+export function haComenzado(funcion) {
+  return inicioFuncion(funcion) <= ahora()
+}
+
+// Texto corto de una función: "Vie 6/11 · 18:30 · 3D" (y "· Sala 1" si se pasa la sala).
+export function etiquetaFuncion(funcion, sala) {
+  const base = `${formatearDia(funcion.fecha)} · ${funcion.hora} · ${funcion.formato ?? '2D'}`
+  return sala ? `${base} · ${sala.nombre}` : base
+}
+
+// Devuelve un mensaje de error si la función se solapa con otra de la misma sala,
+// o '' si el horario está libre. "excluirId" evita que una función choque consigo
+// misma cuando se la edita.
+export function errorSolapamiento(lista, peliculas, { salaId, fecha, hora, peliculaId, excluirId }) {
+  const duracionNueva = peliculas.find((p) => p.id === Number(peliculaId))?.duracion ?? 0
+  const inicio = fechaHoraMs(fecha, hora)
+  const fin = inicio + (duracionNueva + MINUTOS_ENTRE_FUNCIONES) * 60000
+
+  for (const existente of lista) {
+    if (existente.salaId !== Number(salaId) || !existente.activa || existente.id === excluirId) continue
+    const duracion = peliculas.find((p) => p.id === existente.peliculaId)?.duracion ?? 0
+    const inicioExistente = inicioFuncion(existente)
+    const finExistente = inicioExistente + (duracion + MINUTOS_ENTRE_FUNCIONES) * 60000
+    if (inicio < finExistente && inicioExistente < fin) {
+      const fin = horaDe(finExistente)
+      return `La sala ya tiene una función el ${etiquetaFuncion(existente)} que termina a las ${fin} (con limpieza).`
+    }
+  }
+  return ''
+}
+
+// Funciones de una película que todavía se pueden comprar (activas y no comenzadas).
+export function funcionesVigentes(peliculaId, funciones) {
+  return funciones.filter((f) => f.peliculaId === peliculaId && f.activa && !haComenzado(f))
+}
+
+// Formatos disponibles de una película, en el orden de FORMATOS (ej. ['2D', 'VIP']).
+export function formatosDePelicula(peliculaId, funciones) {
+  const usados = new Set(funcionesVigentes(peliculaId, funciones).map((f) => f.formato ?? '2D'))
+  return FORMATOS.filter((f) => usados.has(f))
 }

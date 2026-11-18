@@ -1,6 +1,6 @@
 # i-Moovie · Frontend
 
-Aplicación web de un cine hecha con **React** (Vite + react-router-dom). Es solo frontend: los datos son simulados y se guardan en el navegador.
+Aplicación web de un cine hecha con **React** (Vite + react-router-dom). Es solo frontend: replica las funcionalidades de la API del backend (`i-Moovie - Entrega`), pero los datos son simulados y se guardan en el navegador (`localStorage`); no hay llamadas HTTP.
 
 ## Cómo correrlo
 
@@ -13,11 +13,15 @@ Otros comandos: `npm run build` (versión final) y `npm run lint` (revisión de 
 
 ## Usuarios de prueba
 
-| Rol | Usuario | Contraseña |
+El login se hace con **email y contraseña**; el rol viene con la cuenta.
+
+| Rol | Email | Contraseña |
 |---|---|---|
-| Cliente | `cliente` | `cliente123` |
-| Vendedor | `vendedor` | `vendedor123` |
-| Administrador | `admin` | `admin123` |
+| Cliente | `cliente@imoovie.com` | `cliente123` |
+| Vendedor | `vendedor@imoovie.com` | `vendedor123` |
+| Administrador | `admin@imoovie.com` | `admin123` |
+
+Desde la pantalla de login también se puede **crear una cuenta de cliente**.
 
 ## Documentación
 

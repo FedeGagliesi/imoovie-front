@@ -41,8 +41,9 @@ function NavBar() {
       </Link>
       <nav aria-label="Navegación principal">
         <Link to="/" aria-current={actual('/')}>Inicio</Link>
-        {/* "Quiénes somos" es público: se ve siempre, haya o no sesión iniciada */}
+        <Link to="/candy" aria-current={actual('/candy')}>Candy</Link>
         <Link to="/nosotros" aria-current={actual('/nosotros')}>Quiénes somos</Link>
+        <Link to="/contacto" aria-current={actual('/contacto')}>Contacto</Link>
 
         {/* Renderizado condicional con ternario: una cosa u otra */}
         {sesion ? (
@@ -58,10 +59,7 @@ function NavBar() {
             </button>
           </>
         ) : (
-          <>
-            <Link to="/contacto" aria-current={actual('/contacto')}>Contacto</Link>
-            <Link to="/login" aria-current={actual('/login')}>Ingresar</Link>
-          </>
+          <Link to="/login" aria-current={actual('/login')}>Ingresar</Link>
         )}
       </nav>
     </header>

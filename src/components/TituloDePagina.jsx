@@ -23,13 +23,22 @@ const TITULOS = {
   '/cliente': 'Mi cine',
   '/vendedor': 'Mostrador',
   '/admin': 'Panel admin',
+  '/consultar': 'Consultar entrada',
+  '/candy': 'Candy',
 }
+
+// Rutas con parámetros (/pelicula/3, /comprar/8): el título depende del prefijo.
+const PREFIJOS = [
+  ['/pelicula/', 'Película'],
+  ['/comprar/', 'Comprar entradas'],
+]
 
 function TituloDePagina() {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    const nombre = TITULOS[pathname] || 'Página no encontrada'
+    const prefijo = PREFIJOS.find(([p]) => pathname.startsWith(p))
+    const nombre = TITULOS[pathname] || (prefijo ? prefijo[1] : 'Página no encontrada')
     document.title = nombre + ' · i-Moovie'
   }, [pathname])
 

@@ -121,243 +121,42 @@ main {
   margin-top: 1.5rem;
 }
 
-/* ---------- Cartelera (afiches estilo cine) ---------- */
+/* ---------- Cartelera ---------- */
 
-/* Grilla adaptable: tantas columnas como entren, cada una de 150px o más.
-   En celular quedan 2 columnas y en PC 5-6, sin escribir media queries. */
+/* Grilla adaptable: tantas columnas como entren, cada una de 220px o más.
+   En celular queda 1 columna y en PC 4, sin escribir media queries. */
 .cartelera {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1.75rem 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
 }
 
-.cartelera-ayuda {
-  color: var(--gris-4);
-  margin: -0.25rem 0 1.25rem;
-}
-
-/* La tarjeta es un <button>: se le quita el aspecto de botón del navegador */
-.afiche-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.afiche-card:hover {
-  transform: translateY(-4px);
-}
-
-.afiche-card:focus-visible {
-  outline: 2px solid var(--texto);
-  outline-offset: 4px;
-  border-radius: 10px;
-}
-
-.afiche-titulo {
-  margin-top: 0.6rem;
-  font-family: var(--fuente-titulos);
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--texto);
-}
-
-.afiche-card:hover .afiche-titulo {
-  color: var(--naranja-claro);
-}
-
-.afiche-datos {
-  font-size: 0.85rem;
-  color: var(--gris-4);
-}
-
-/* El afiche: formato vertical 2:3 como un póster. El color de la película llega
-   desde React en la variable --color-afiche. */
-.afiche {
-  position: relative;
-  aspect-ratio: 2 / 3;
-  overflow: hidden;
-  border-radius: 10px;
+.pelicula-card {
+  background: var(--negro-3);
   border: 1px solid var(--gris-1);
-  background: linear-gradient(
-    160deg,
-    color-mix(in srgb, var(--color-afiche) 80%, #000),
-    color-mix(in srgb, var(--color-afiche) 25%, #000)
-  );
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  border-radius: 12px;
+  padding: 1rem;
 }
 
-.afiche-card:hover .afiche {
-  border-color: var(--naranja);
-  box-shadow: 0 12px 30px var(--naranja-brillo);
+.pelicula-card h3 {
+  margin: 0.75rem 0 0.25rem;
 }
 
-/* Perforaciones de cinta de cine a los dos costados */
-.afiche::before,
-.afiche::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 9px;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 7px,
-    rgba(0, 0, 0, 0.6) 7px 15px
-  );
+.pelicula-datos {
+  color: var(--naranja);
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
 }
 
-.afiche::before {
-  left: 5px;
-}
-
-.afiche::after {
-  right: 5px;
-}
-
-/* Un brillo suave arriba para dar relieve */
-.afiche-brillo {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 45%);
-}
-
-.afiche-letra {
-  position: absolute;
-  inset: 0;
+.pelicula-afiche {
+  height: 160px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--fuente-titulos);
-  font-size: clamp(4rem, 12vw, 6rem);
+  font-size: 4rem;
   font-weight: 800;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-}
-
-.afiche-edad {
-  position: absolute;
-  top: 8px;
-  right: 22px;
-  z-index: 1;
-  padding: 0.1rem 0.45rem;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.8);
-  color: var(--texto);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-/* ---------- Ficha de la película (ventana <dialog>) ---------- */
-
-.ficha {
-  width: min(44rem, calc(100% - 2rem));
-  max-height: calc(100dvh - 2rem);
-  padding: 0;
-  overflow: auto;
-  border: 1px solid var(--naranja-oscuro);
-  border-radius: 14px;
-  background: var(--negro-3);
-  color: var(--texto);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
-}
-
-/* El fondo oscuro que el navegador dibuja detrás de la ventana */
-.ficha::backdrop {
-  background: rgba(0, 0, 0, 0.78);
-}
-
-/* Con la ficha abierta, la página de atrás no se desplaza */
-body:has(dialog[open]) {
-  overflow: hidden;
-}
-
-.ficha-contenido {
-  position: relative;
-  display: grid;
-  gap: 1.25rem;
-  padding: 1.5rem;
-}
-
-/* En celular el afiche va chico y centrado arriba */
-.ficha-contenido .afiche {
-  width: 9rem;
-  justify-self: center;
-}
-
-.ficha-info h2 {
-  margin: 0 0 0.75rem;
-}
-
-.ficha-datos {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.35rem 1rem;
-  margin: 0 0 1rem;
-}
-
-.ficha-datos dt {
-  color: var(--naranja);
-  font-weight: 700;
-}
-
-.ficha-datos dd {
-  margin: 0;
-}
-
-.ficha-sinopsis {
-  margin: 0 0 1.25rem;
-  color: var(--gris-4);
-  line-height: 1.6;
-}
-
-.ficha-cerrar {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid var(--gris-2);
-  border-radius: 50%;
-  background: var(--negro-2);
-  color: var(--texto);
-  font-size: 1.1rem;
-  cursor: pointer;
-}
-
-.ficha-cerrar:hover {
-  border-color: var(--naranja);
-}
-
-.ficha-cerrar:focus-visible {
-  outline: 2px solid var(--texto);
-  outline-offset: 2px;
-}
-
-/* En pantallas más anchas: afiche a la izquierda, datos a la derecha */
-@media (min-width: 600px) {
-  .ficha-contenido {
-    grid-template-columns: 13rem 1fr;
-    gap: 1.75rem;
-    padding: 2rem;
-  }
-
-  .ficha-contenido .afiche {
-    width: 100%;
-  }
-
-  .ficha-info h2 {
-    padding-right: 2.5rem;
-  }
+  color: rgba(255, 255, 255, 0.85);
 }
 
 /* ---------- Formularios (reutilizables: Contacto, Login, Admin, ...) ---------- */
@@ -1522,16 +1321,19 @@ main:focus {
 
 /* ---------- Detalles de diseño: tarjetas y botones ---------- */
 
+.pelicula-card,
 .integrante-card,
 .paso,
 .resultado {
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.pelicula-card,
 .integrante-card {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
+.pelicula-card:hover,
 .integrante-card:hover,
 .paso:hover {
   transform: translateY(-3px);
@@ -1569,8 +1371,7 @@ main:focus {
 
 /* Quien pidió menos movimiento en su sistema no ve estas animaciones */
 @media (prefers-reduced-motion: reduce) {
-  .afiche-card,
-  .afiche,
+  .pelicula-card,
   .integrante-card,
   .paso,
   .resultado,
@@ -1578,7 +1379,7 @@ main:focus {
     transition: none;
   }
 
-  .afiche-card:hover,
+  .pelicula-card:hover,
   .integrante-card:hover,
   .paso:hover,
   .boton:hover:not(:disabled) {
@@ -1638,4 +1439,953 @@ main:focus {
 .entrada-qr figcaption {
   font-size: 0.9rem;
   color: var(--gris-4);
+}
+
+/* ---------- Tipos de butaca (VIP y Premium, como en el backend) ---------- */
+.butaca-tipo-vip {
+  border: 2px solid #ffd166;
+}
+
+.butaca-tipo-premium {
+  border: 2px solid #b388ff;
+}
+
+/* ---------- Formularios de acción dentro de una lista (reprogramar, calificar...) ---------- */
+.formulario-accion {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--gris-2, #333);
+  border-radius: 8px;
+}
+
+.opcion-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+/* ---------- Varias entradas, cada una con su QR ---------- */
+.entradas-qr-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+
+/* =====================================================================
+   CARTELERA EN AFICHES, FICHA DE PELÍCULA, COMPRA EN PASOS
+   Estilos del rediseño inspirado en la referencia. Los colores salen de index.css.
+   ===================================================================== */
+
+/* ---------- Afiche (se usa en cartelera, ficha y resumen) ---------- */
+.afiche {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--negro-4);
+}
+
+.afiche-img,
+.afiche-fondo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.afiche-img {
+  object-fit: cover;
+}
+
+.afiche-fondo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.afiche-inicial {
+  font-family: var(--fuente-titulos);
+  font-size: 6rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.afiche::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 55%, rgba(0, 0, 0, 0.55));
+  pointer-events: none;
+}
+
+.afiche-duracion {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 2;
+  padding: 0.2rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(20, 20, 20, 0.75);
+  color: #fff;
+  font-family: var(--fuente-titulos);
+  font-size: 0.95rem;
+}
+
+.afiche-clasif {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 2;
+  min-width: 2.2rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* Colores de la clasificación */
+.clasif-G { background: #2e7d32; }
+.clasif-PG { background: #f9a825; color: #1a1209; }
+.clasif-13 { background: #1e88e5; }
+.clasif-16 { background: #fb8c00; }
+.clasif-18 { background: #e53935; }
+
+/* ---------- Cartelera: galería de tarjetas ---------- */
+.cartelera {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1.5rem;
+}
+
+.pelicula-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  background: var(--negro-3);
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+}
+
+.pelicula-enlace {
+  display: block;
+  padding: 0.6rem 0.6rem 0;
+}
+
+.pelicula-cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  padding: 0.6rem 0.9rem 0.9rem;
+}
+
+.pelicula-cuerpo h3 {
+  margin: 0.2rem 0 0;
+  font-size: 1.35rem;
+}
+
+.pelicula-titulo-enlace {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pelicula-titulo-enlace:hover {
+  color: var(--naranja);
+}
+
+.pelicula-cuerpo .pelicula-datos {
+  margin: 0;
+  color: var(--gris-3);
+  font-size: 0.85rem;
+}
+
+.pelicula-formatos {
+  margin: 0.25rem 0 0;
+  color: var(--naranja);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.pelicula-estado {
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  background: #f3efe9;
+  color: #1a1209;
+  font-size: 0.9rem;
+}
+
+/* ---------- Ficha de la película ---------- */
+.pelicula-pagina {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.pelicula-ficha {
+  position: sticky;
+  top: 1rem;
+}
+
+.pelicula-ficha-titulo {
+  font-size: 2.4rem;
+  margin-bottom: 1rem;
+}
+
+.pelicula-ficha-afiche {
+  width: 100%;
+}
+
+.pelicula-ficha .pelicula-estado {
+  margin: 0.6rem 0 0;
+  border-radius: 8px;
+}
+
+.pelicula-genero-chip {
+  display: inline-block;
+  margin: 1rem 0 0.75rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--gris-1);
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+
+.pelicula-sinopsis-completa {
+  color: var(--gris-4);
+  line-height: 1.55;
+}
+
+.ficha-datos {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.9rem 1rem;
+  margin: 1.5rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gris-1);
+}
+
+.ficha-datos dt {
+  font-family: var(--fuente-titulos);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+}
+
+.ficha-datos dd {
+  margin: 0;
+  text-align: right;
+  color: var(--gris-4);
+}
+
+.pelicula-horarios .titulo-seccion {
+  margin-bottom: 1rem;
+}
+
+.franja-fechas {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.franja-dia {
+  flex: 0 0 auto;
+  min-width: 96px;
+  padding: 0.7rem 0.5rem;
+  border: 1px solid var(--gris-1);
+  border-radius: 8px;
+  background: var(--negro-3);
+  color: var(--texto);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.franja-dia-nombre {
+  font-family: var(--fuente-titulos);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.franja-dia-numero {
+  color: var(--gris-3);
+  font-size: 0.9rem;
+}
+
+.franja-dia-activa {
+  background: #ffffff;
+  color: #111111;
+  border-color: #ffffff;
+}
+
+.franja-dia-activa .franja-dia-numero {
+  color: #333333;
+}
+
+.filtros-horarios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.filtros-horarios .campo {
+  margin: 0;
+  min-width: 180px;
+}
+
+.leyenda-disponibilidad,
+.leyenda-sala {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 1rem;
+  color: var(--gris-3);
+  font-size: 0.9rem;
+}
+
+.horarios-cines {
+  display: grid;
+  gap: 1.75rem;
+}
+
+.cine-nombre {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.cine-direccion {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--gris-3);
+  font-size: 0.9rem;
+}
+
+.grupo-horarios {
+  margin-bottom: 0.9rem;
+}
+
+.grupo-clave {
+  margin: 0 0 0.5rem;
+  color: var(--gris-4);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.lista-horarios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.horario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--gris-1);
+  border-radius: 8px;
+  background: var(--negro-4);
+  color: var(--texto);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.horario:hover:not(:disabled) {
+  border-color: var(--naranja);
+}
+
+.horario:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+/* Niveles de disponibilidad: el color también se dice con texto (aria-label y leyenda) */
+.horario-punto {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--gris-2);
+  flex: 0 0 auto;
+}
+
+.nivel-alta .horario-punto { background: #2ecc71; }
+.nivel-media .horario-punto { background: #f1c40f; }
+.nivel-baja .horario-punto { background: #e67e22; }
+.nivel-completa .horario-punto { background: #777777; }
+
+.leyenda-disponibilidad li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ---------- Compra en pasos: layout y resumen ---------- */
+.compra-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.compra-principal {
+  min-width: 0;
+}
+
+.compra-cabecera {
+  color: var(--gris-3);
+  font-size: 0.95rem;
+  margin: 0.25rem 0 1.25rem;
+}
+
+.titulo-seccion {
+  font-family: var(--fuente-titulos);
+  font-size: 2rem;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+}
+
+.subtitulo-seccion {
+  font-family: var(--fuente-titulos);
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  margin: 1.5rem 0 0.6rem;
+}
+
+.texto-suave {
+  color: var(--gris-3);
+  font-size: 0.92rem;
+}
+
+.resumen-compra {
+  position: sticky;
+  top: 1rem;
+  padding: 1.25rem;
+  background: var(--negro-3);
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+}
+
+.resumen-titulo {
+  font-family: var(--fuente-titulos);
+  font-size: 1.8rem;
+  text-transform: uppercase;
+  margin: 0 0 0.5rem;
+}
+
+.resumen-bloque {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--gris-1);
+}
+
+.resumen-etiqueta {
+  margin: 0 0 0.4rem;
+  color: var(--gris-3);
+  font-size: 0.9rem;
+}
+
+.resumen-linea {
+  margin: 0.2rem 0;
+  font-size: 0.95rem;
+}
+
+.resumen-monto {
+  float: right;
+  color: var(--gris-4);
+}
+
+.resumen-pelicula {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.resumen-afiche {
+  width: 58px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+}
+
+.resumen-pelicula-titulo {
+  margin: 0;
+  font-weight: 700;
+}
+
+.resumen-pelicula-formato {
+  margin: 0.15rem 0 0;
+  color: var(--gris-3);
+  font-size: 0.85rem;
+}
+
+/* Barra de acción: queda pegada al final de la columna mientras se hace scroll */
+.barra-compra {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 0.9rem 1.1rem;
+  background: var(--negro-2);
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+}
+
+.barra-total {
+  display: flex;
+  flex-direction: column;
+}
+
+.barra-total span {
+  color: var(--gris-3);
+  font-size: 0.85rem;
+}
+
+.barra-total strong {
+  font-family: var(--fuente-titulos);
+  font-size: 1.6rem;
+}
+
+.barra-acciones {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.enlace-volver {
+  margin-top: 1rem;
+  color: var(--gris-3);
+  font-size: 0.9rem;
+}
+
+/* ---------- Mapa de la sala ---------- */
+.sala-mapa {
+  padding: 1.25rem 0.5rem 1rem;
+  background: var(--negro-2);
+  border-radius: 12px;
+  border: 1px solid var(--gris-1);
+  overflow-x: auto;
+}
+
+.pantalla-curva {
+  width: 80%;
+  height: 46px;
+  margin: 0 auto 2rem;
+  background: linear-gradient(to bottom, #4a4a4a, #1c1c1c);
+  border-radius: 50% / 100% 100% 0 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.pantalla-curva span {
+  margin-bottom: -1.6rem;
+  color: var(--gris-3);
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  font-family: var(--fuente-titulos);
+}
+
+.sala-filas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: max-content;
+  margin: 0 auto;
+}
+
+.sala-fila {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.sala-fila .fila-letra {
+  width: 16px;
+  color: var(--gris-3);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.sala-bloques {
+  display: flex;
+  gap: 1.4rem; /* pasillos entre bloques */
+}
+
+.sala-bloque {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.asiento {
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.asiento-libre {
+  background: #f5f5f5;
+  color: #111111;
+}
+
+.asiento-libre:hover {
+  outline: 2px solid var(--naranja);
+}
+
+.asiento-ocupada {
+  background: #4a4a4a;
+  color: #8a8a8a;
+  cursor: not-allowed;
+}
+
+.asiento-seleccionada {
+  background: var(--naranja);
+  color: var(--texto-sobre-naranja);
+}
+
+.asiento-tipo-vip {
+  border-color: #ffd166;
+}
+
+.asiento-tipo-premium {
+  border-color: #b388ff;
+}
+
+.leyenda-sala .asiento {
+  width: 18px;
+  height: 18px;
+  cursor: default;
+  font-size: 0.6rem;
+}
+
+.leyenda-sala li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ---------- Candy: tarjetas con imagen y oferta ---------- */
+.lista-productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+
+.producto-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem;
+  background: var(--negro-3);
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+}
+
+.producto-imagen {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #b8c9d6;
+}
+
+.producto-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.producto-imagen-fondo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4a5a6a;
+  color: #fff;
+  font-family: var(--fuente-titulos);
+  font-size: 4rem;
+}
+
+.sello-oferta {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: #e63946;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  transform: rotate(-8deg);
+}
+
+.producto-nombre {
+  margin: 0.4rem 0 0;
+  font-size: 1.2rem;
+}
+
+.producto-desc {
+  margin: 0;
+  color: var(--gris-3);
+  font-size: 0.85rem;
+}
+
+.producto-pie {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.producto-precio {
+  font-weight: 700;
+}
+
+.producto-cantidad {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ---------- Pago simulado ---------- */
+.metodos-pago {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.metodo-pago {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid var(--gris-1);
+  border-radius: 10px;
+  background: var(--negro-3);
+  cursor: pointer;
+}
+
+.metodo-activo {
+  border-color: var(--naranja);
+  box-shadow: 0 0 0 1px var(--naranja) inset;
+}
+
+.datos-titular {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.terminos {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+/* ---------- Comprobante ---------- */
+.contenedor-compra {
+  max-width: 760px;
+}
+
+/* ---------- Pantallas angostas ---------- */
+@media (max-width: 900px) {
+  .pelicula-pagina,
+  .compra-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pelicula-ficha,
+  .resumen-compra {
+    position: static;
+  }
+
+  .metodos-pago,
+  .datos-titular {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Mis entradas: una tarjeta por compra ---------- */
+.lista-compras {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+}
+
+.compra-tarjeta {
+  padding: 1rem 1.1rem;
+  background: var(--negro-3);
+  border: 1px solid var(--gris-1);
+  border-radius: 12px;
+}
+
+.compra-cabecera-tarjeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.compra-titulo {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.compra-detalle {
+  margin: 0.25rem 0;
+  color: var(--gris-3);
+  font-size: 0.92rem;
+}
+
+.butacas-compra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+.butaca-chip {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--gris-1);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.butaca-chip-utilizada,
+.butaca-chip-cancelada {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.compra-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+/* ---------- Carrusel de QR apilados ---------- */
+.carrusel-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  user-select: none;
+}
+
+.carrusel-controles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.carrusel-contador {
+  margin: 0;
+  font-weight: 700;
+  min-width: 9rem;
+  text-align: center;
+}
+
+.boton-flecha {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  border: 1px solid var(--gris-1);
+  background: var(--negro-4);
+  color: var(--texto);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.boton-flecha:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* La pila: las capas de atrás asoman por debajo de la entrada activa */
+.pila-qr {
+  position: relative;
+  padding-bottom: calc(var(--capas, 0) * 8px);
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.pila-qr::before,
+.pila-qr::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 0;
+  height: 100%;
+  border-radius: 14px;
+  background: var(--negro-4);
+  border: 1px solid var(--gris-1);
+  z-index: -1;
+}
+
+.pila-qr::before {
+  transform: translateY(8px) scale(0.96);
+}
+
+.pila-qr::after {
+  transform: translateY(16px) scale(0.92);
+}
+
+.pila-qr-activa {
+  position: relative;
+  z-index: 1;
+  background: var(--negro-3);
+  border-radius: 14px;
+  padding: 0.5rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+
+.carrusel-puntos {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gris-1);
+}
+
+.punto-activo {
+  background: var(--naranja);
 }
