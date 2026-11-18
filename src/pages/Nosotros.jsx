@@ -17,6 +17,13 @@ function Nosotros() {
           Somos un grupo de estudiantes de Aplicaciones Interactivas (UADE) y construimos
           i-Moovie como proyecto de la materia.
         </p>
+        <p>
+          i-Moovie es la plataforma de nuestro cine para que ir a ver una película sea simple
+          de principio a fin: mirar la cartelera, elegir la función, reservar las butacas,
+          sumar el candy y llevar tu historial. Quienes atienden el mostrador usan la misma
+          plataforma para vender entradas, validar el ingreso y mantener la cartelera al día.
+        </p>
+        <p className="firma">El equipo de i-Moovie</p>
       </section>
 
       {/* INTEGRANTES */}

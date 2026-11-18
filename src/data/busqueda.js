@@ -3,16 +3,25 @@
 // Funciones comunes (no son componentes) que arman la lista de funciones que
 // se pueden comprar y la filtran según lo que eligió la persona. Separar esto
 // del componente deja al buscador solo con la tarea de dibujar.
+//
+// Los filtros siguen los parámetros de GET /api/funciones del backend
+// (película, sala, idioma, subtítulos, doblaje, accesibilidad y solo con butacas libres),
+// más sucursal, día, franja horaria, precio y orden, que son de la interfaz.
 
-import { butacasNoDisponibles, TOTAL_BUTACAS } from './funciones'
-import { obtenerCompras } from './compras'
+import { butacasLibres } from './entradas'
+import { haComenzado } from './funciones'
 
 // Valores iniciales de los filtros: '' significa "sin filtrar por este criterio".
 export const FILTROS_VACIOS = {
   sucursal: '',
   pelicula: '',
+  formato: '',
   dia: '',
   franja: '',
+  idioma: '',
+  subtitulos: '',
+  doblaje: '',
+  accesibilidad: '',
   asientos: '',
   precioMax: '',
   orden: 'horario',
@@ -33,6 +42,12 @@ export const OPCIONES_ASIENTOS = [
   { valor: '6', nombre: '6 o más' },
 ]
 
+// Para los filtros de "sí / no": si se elige "Sí", solo se muestran las funciones con esa opción.
+export const OPCIONES_SI = [
+  { valor: '', nombre: 'Indistinto' },
+  { valor: 'si', nombre: 'Sí' },
+]
+
 export const OPCIONES_ORDEN = [
   { valor: 'horario', nombre: 'Más próximas primero' },
   { valor: 'precio', nombre: 'Precio: menor a mayor' },
@@ -40,20 +55,21 @@ export const OPCIONES_ORDEN = [
 ]
 
 // Arma una fila por cada función que se puede comprar, con todo lo necesario
-// para mostrarla: la función, su película, su sucursal y las butacas libres.
-// Se descartan las funciones de películas o sucursales dadas de baja.
-export function armarResultados({ funciones, peliculas, sucursales }) {
-  const compras = obtenerCompras() // se lee una sola vez para todas las funciones
+// para mostrarla. Se descartan las funciones dadas de baja, las que ya comenzaron,
+// y las de películas, salas o sucursales dadas de baja.
+export function armarResultados({ funciones, peliculas, sucursales, salas, entradas }) {
   const resultados = []
 
   funciones.forEach((funcion) => {
+    if (!funcion.activa || haComenzado(funcion)) return
     const pelicula = peliculas.find((p) => p.id === funcion.peliculaId)
-    const sucursal = sucursales.find((s) => s.id === funcion.sucursalId)
-    if (!pelicula || !pelicula.activa || !sucursal || !sucursal.activa) {
+    const sala = salas.find((s) => s.id === funcion.salaId)
+    const sucursal = sala && sucursales.find((s) => s.id === sala.sucursalId)
+    if (!pelicula || !pelicula.activa || !sala || !sala.activa || !sucursal || !sucursal.activa) {
       return // salta a la siguiente función
     }
-    const libres = TOTAL_BUTACAS - butacasNoDisponibles(funcion.id, compras).length
-    resultados.push({ funcion, pelicula, sucursal, libres })
+    const libres = butacasLibres(funcion, sala, entradas).length
+    resultados.push({ funcion, pelicula, sucursal, sala, libres, total: sala.butacas.length })
   })
 
   return resultados
@@ -67,8 +83,9 @@ export function diasDisponibles(resultados) {
 
 // Se queda con los resultados que cumplen TODOS los filtros elegidos y los ordena.
 export function filtrarResultados(resultados, filtros) {
-  const encontrados = resultados.filter(({ funcion, libres }) => {
-    if (filtros.sucursal !== '' && funcion.sucursalId !== Number(filtros.sucursal)) return false
+  const encontrados = resultados.filter(({ funcion, sala, libres }) => {
+    if (filtros.sucursal !== '' && sala.sucursalId !== Number(filtros.sucursal)) return false
+    if (filtros.formato !== '' && funcion.formato !== filtros.formato) return false
     if (filtros.pelicula !== '' && funcion.peliculaId !== Number(filtros.pelicula)) return false
     if (filtros.dia !== '' && funcion.fecha !== filtros.dia) return false
 
@@ -77,6 +94,11 @@ export function filtrarResultados(resultados, filtros) {
       const hora = Number(funcion.hora.slice(0, 2)) // "18:30" → 18
       if (hora < franja.desde || hora >= franja.hasta) return false
     }
+
+    if (filtros.idioma !== '' && funcion.idioma !== filtros.idioma) return false
+    if (filtros.subtitulos === 'si' && !funcion.conSubtitulos) return false
+    if (filtros.doblaje === 'si' && !funcion.conDoblaje) return false
+    if (filtros.accesibilidad === 'si' && !funcion.conAccesibilidad) return false
 
     if (filtros.asientos !== '' && libres < Number(filtros.asientos)) return false
     if (filtros.precioMax !== '' && funcion.precio > Number(filtros.precioMax)) return false

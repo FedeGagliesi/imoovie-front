@@ -1,19 +1,18 @@
 // Pestaña "Candy y pedidos" del mostrador del vendedor.
 //
-// Dos tareas:
-//   1) Vender candy en el mostrador, sin cuenta de cliente (Parte 9).
-//   2) Entregar el candy que los clientes ya pidieron online al comprar su
-//      entrada, y marcarlo como retirado (Parte 12).
+// Dos bloques:
+//   1) Venta de candy en el mostrador, sin cuenta de cliente (función propia de la
+//      interfaz; el backend no tiene venta de candy en mostrador).
+//   2) Pedidos online pendientes de retiro (solo lectura). Como en el backend, el
+//      retiro se registra desde el panel de administración: PUT /api/admin/candy/pedidos/{id}/retirar.
 //
-// La sucursal la elige el vendedor en la página (pages/Vendedor.jsx) y llega
-// por props. Reutilizamos el componente ProductoCandy que ya hicimos para el cliente.
 // Todo se guarda en localStorage para que no se pierda al cambiar de página.
 
 import { useState } from 'react'
 import { obtenerProductos } from '../../data/candy'
-import { obtenerCompras, guardarCompras } from '../../data/compras'
+import { obtenerPedidos, montoTotalPedido } from '../../data/pedidos'
 import { obtenerVentas, guardarVentas, MEDIOS_PAGO } from '../../data/ventas'
-import { formatearPrecio, formatearHora, esHoy, ahora } from '../../data/formato'
+import { formatearPrecio, formatearFechaHora, formatearHora, esHoy, ahora, fechaHoraMs } from '../../data/formato'
 import ProductoCandy from '../ProductoCandy'
 
 const MAX_POR_PRODUCTO = 10
@@ -25,11 +24,14 @@ function MostradorCandy({ sucursalId }) {
   // La venta actual es un objeto { idProducto: cantidad }, igual que el candy del cliente.
   const [carrito, setCarrito] = useState({})
   const [ventas, setVentas] = useState(() => obtenerVentas())
-  const [compras, setCompras] = useState(() => obtenerCompras())
   const [pago, setPago] = useState(MEDIOS_PAGO[0])
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
-  const [mensajePedido, setMensajePedido] = useState('')
+
+  // Pedidos online que todavía no se retiraron (de todas las sucursales, como el backend).
+  const pendientes = obtenerPedidos()
+    .filter((p) => !p.retirado && !p.cancelado)
+    .sort((a, b) => fechaHoraMs(a.horarioRetiro.slice(0, 10), a.horarioRetiro.slice(11)) - fechaHoraMs(b.horarioRetiro.slice(0, 10), b.horarioRetiro.slice(11)))
 
   // DATOS DERIVADOS (se calculan en cada render, no se guardan con useState)
   const lineas = productos
@@ -40,11 +42,6 @@ function MostradorCandy({ sucursalId }) {
   // Ventas de ESTA sucursal y de HOY
   const ventasHoy = ventas.filter((v) => v.sucursalId === sucursalId && esHoy(v.fecha))
   const recaudadoHoy = ventasHoy.reduce((suma, v) => suma + v.total, 0)
-
-  // Pedidos online de esta sucursal con candy que todavía no se entregó
-  const pedidosPendientes = compras.filter(
-    (c) => c.sucursalId === sucursalId && c.lineasCandy.length > 0 && !c.retirado,
-  )
 
   function handleCambiar(productoId, cambio) {
     const actual = carrito[productoId] || 0
@@ -87,14 +84,6 @@ function MostradorCandy({ sucursalId }) {
     setCarrito({})
     setError('')
     setMensaje('')
-  }
-
-  // Marca un pedido online como entregado (cambia UN elemento de la lista).
-  function handleRetirar(compra) {
-    const nuevas = compras.map((c) => (c.id === compra.id ? { ...c, retirado: true } : c))
-    setCompras(nuevas)
-    guardarCompras(nuevas)
-    setMensajePedido(`Pedido ${compra.numero} entregado.`)
   }
 
   return (
@@ -165,38 +154,28 @@ function MostradorCandy({ sucursalId }) {
       </div>
 
       <section aria-labelledby="titulo-pedidos">
-        <h2 id="titulo-pedidos" className="titulo-paso historial-titulo">Pedidos online por retirar</h2>
+        <h2 id="titulo-pedidos" className="titulo-paso historial-titulo">Pedidos online pendientes de retiro</h2>
 
         <p className="seleccion-resumen" aria-live="polite">
-          {pedidosPendientes.length} {pedidosPendientes.length === 1 ? 'pedido pendiente' : 'pedidos pendientes'}
+          {pendientes.length} {pendientes.length === 1 ? 'pedido pendiente' : 'pedidos pendientes'}
         </p>
-        {mensajePedido && <p role="status">{mensajePedido}</p>}
+        <p className="resultado-datos">El retiro lo registra el administrador desde el panel de candy.</p>
 
-        {pedidosPendientes.length === 0 ? (
-          <p>No hay pedidos de candy pendientes en esta sucursal.</p>
+        {pendientes.length === 0 ? (
+          <p>No hay pedidos de candy pendientes.</p>
         ) : (
           <ul className="historial">
-            {pedidosPendientes.map((c) => (
-              <li key={c.id} className="historial-item">
+            {pendientes.map((p) => (
+              <li key={p.id} className="historial-item">
                 <div className="historial-cabecera">
-                  <strong>{c.numero}</strong>
-                  <span>
-                    Comprado {formatearHora(c.fecha)} · cliente {c.usuario}
-                  </span>
+                  <strong>{p.cantidad} × {p.nombre}</strong>
+                  <span>Cliente {p.usuario}</span>
                 </div>
                 <p className="historial-comentario">
-                  {c.lineasCandy.map((l) => `${l.cantidad} × ${l.nombre}`).join(', ')}
+                  Retiro: {formatearFechaHora(fechaHoraMs(p.horarioRetiro.slice(0, 10), p.horarioRetiro.slice(11)))}
                 </p>
                 <div className="historial-pie">
-                  <span>Candy: {formatearPrecio(c.totalCandy)}</span>
-                  <button
-                    type="button"
-                    className="boton-texto"
-                    aria-label={`Marcar como entregado el pedido ${c.numero}`}
-                    onClick={() => handleRetirar(c)}
-                  >
-                    Marcar como entregado
-                  </button>
+                  <span>Total {formatearPrecio(montoTotalPedido(p))}</span>
                 </div>
               </li>
             ))}

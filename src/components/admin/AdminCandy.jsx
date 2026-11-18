@@ -1,18 +1,18 @@
-// Pestaña "Candy" del panel de administración (Parte 12).
+// Pestaña "Candy" del panel de administración. Espeja:
+//   - /api/admin/productos: alta, edición (nombre, descripción, precio) y baja lógica.
+//   - /api/admin/candy/pedidos/{id}/retirar: registrar que un pedido online se entregó.
 //
-// CRUD completo de productos de candy:
-//   - Listar y Alta (con validación)
-//   - Cambiar el precio de un producto (edición en la misma fila de la tabla)
-//   - Dar de baja / reactivar (baja lógica: no se borra)
+// Los productos dados de baja dejan de ofrecerse, pero no se borran. El precio que
+// figura en un pedido ya hecho no cambia cuando se edita el producto.
 
 import { useState } from 'react'
 import { obtenerProductos, guardarProductos } from '../../data/candy'
-import { formatearPrecio } from '../../data/formato'
+import { obtenerPedidos, guardarPedidos, montoTotalPedido } from '../../data/pedidos'
+import { formatearPrecio, formatearFechaHora, fechaHoraMs, siguienteId } from '../../data/formato'
 
-const FORM_VACIO = { nombre: '', descripcion: '', precio: '' }
+const FORM_VACIO = { nombre: '', descripcion: '', precio: '', imagen: '', oferta: false }
 
-// Devuelve el texto del error, o '' si el precio está bien. La usamos en el alta
-// y en el cambio de precio para no repetir la regla.
+// Regla del precio: entero entre 500 y 50.000, igual que antes en esta pantalla.
 function validarPrecio(texto) {
   const numero = Number(texto)
   if (texto === '' || !Number.isInteger(numero) || numero < 500 || numero > 50000) {
@@ -21,13 +21,13 @@ function validarPrecio(texto) {
   return ''
 }
 
-function validar(datos, lista) {
+function validar(datos, lista, idEditado) {
   const errores = {}
   const nombre = datos.nombre.trim()
 
   if (nombre.length < 3) {
     errores.nombre = 'Ingresá el nombre del producto (mínimo 3 caracteres).'
-  } else if (lista.some((p) => p.nombre.toLowerCase() === nombre.toLowerCase())) {
+  } else if (lista.some((p) => p.id !== idEditado && p.nombre.toLowerCase() === nombre.toLowerCase())) {
     errores.nombre = 'Ya existe un producto con ese nombre.'
   }
 
@@ -36,27 +36,27 @@ function validar(datos, lista) {
   }
 
   const errorPrecio = validarPrecio(datos.precio)
-  if (errorPrecio) {
-    errores.precio = errorPrecio
-  }
+  if (errorPrecio) errores.precio = errorPrecio
 
   return errores
 }
 
 function AdminCandy() {
   const [lista, setLista] = useState(() => obtenerProductos())
+  const [pedidos, setPedidos] = useState(() => obtenerPedidos())
   const [datos, setDatos] = useState(FORM_VACIO)
   const [errores, setErrores] = useState({})
-  const [mensajeAlta, setMensajeAlta] = useState('')
-  const [mensajeLista, setMensajeLista] = useState('')
-
-  // Edición de precio: qué producto se está editando (null = ninguno) y el
-  // valor que se está escribiendo. Solo UNA fila puede estar en edición a la vez.
+  const [mensaje, setMensaje] = useState('')
   const [editandoId, setEditandoId] = useState(null)
-  const [precioEditado, setPrecioEditado] = useState('')
-  const [errorPrecio, setErrorPrecio] = useState('')
+  const [mensajePedido, setMensajePedido] = useState('')
 
+  const editando = editandoId !== null
   const cantidadActivos = lista.filter((p) => p.activo).length
+
+  // Pedidos online que todavía no se entregaron, ordenados por horario de retiro.
+  const pendientes = pedidos
+    .filter((p) => !p.retirado && !p.cancelado)
+    .sort((a, b) => fechaHoraMs(a.horarioRetiro.slice(0, 10), a.horarioRetiro.slice(11)) - fechaHoraMs(b.horarioRetiro.slice(0, 10), b.horarioRetiro.slice(11)))
 
   function actualizarLista(nueva) {
     setLista(nueva)
@@ -65,71 +65,83 @@ function AdminCandy() {
 
   function handleChange(e) {
     setDatos({ ...datos, [e.target.name]: e.target.value })
-    setMensajeAlta('')
+    setMensaje('')
   }
 
-  function handleSubmit(e) {
-    e.preventDefault()
-
-    const erroresEncontrados = validar(datos, lista)
-    setErrores(erroresEncontrados)
-    if (Object.keys(erroresEncontrados).length > 0) {
-      setMensajeAlta('')
-      return
-    }
-
-    const nuevo = {
-      id: Math.max(0, ...lista.map((p) => p.id)) + 1,
-      nombre: datos.nombre.trim(),
-      descripcion: datos.descripcion.trim(),
-      precio: Number(datos.precio),
-      activo: true,
-    }
-
-    actualizarLista([...lista, nuevo])
-    setMensajeAlta(`Se agregó "${nuevo.nombre}" al candy.`)
+  function cancelarEdicion() {
+    setEditandoId(null)
     setDatos(FORM_VACIO)
+    setErrores({})
   }
 
   function handleEditar(producto) {
     setEditandoId(producto.id)
-    setPrecioEditado(String(producto.precio))
-    setErrorPrecio('')
-    setMensajeLista('')
+    setDatos({
+      nombre: producto.nombre,
+      descripcion: producto.descripcion ?? '',
+      precio: String(producto.precio),
+      imagen: producto.imagen ?? '',
+      oferta: Boolean(producto.oferta),
+    })
+    setErrores({})
+    setMensaje('')
   }
 
-  function handleCancelarEdicion() {
-    setEditandoId(null)
-    setErrorPrecio('')
-  }
-
-  function handleGuardarPrecio(producto) {
-    const mensajeError = validarPrecio(precioEditado)
-    if (mensajeError) {
-      setErrorPrecio(mensajeError)
+  function handleSubmit(e) {
+    e.preventDefault()
+    const erroresEncontrados = validar(datos, lista, editandoId)
+    setErrores(erroresEncontrados)
+    if (Object.keys(erroresEncontrados).length > 0) {
+      setMensaje('')
       return
     }
 
-    // Cambiamos el precio de UN producto (copia modificada) y dejamos los demás igual.
-    actualizarLista(
-      lista.map((p) => (p.id === producto.id ? { ...p, precio: Number(precioEditado) } : p)),
-    )
-    setEditandoId(null)
-    setErrorPrecio('')
-    setMensajeLista(`Nuevo precio de "${producto.nombre}": ${formatearPrecio(Number(precioEditado))}.`)
+    const campos = {
+      nombre: datos.nombre.trim(),
+      descripcion: datos.descripcion.trim(),
+      precio: Number(datos.precio),
+      imagen: datos.imagen.trim(),
+      oferta: datos.oferta,
+    }
+
+    if (editando) {
+      actualizarLista(lista.map((p) => (p.id === editandoId ? { ...p, ...campos } : p)))
+      setMensaje(`Se actualizó "${campos.nombre}".`)
+      cancelarEdicion()
+      return
+    }
+
+    const nuevo = { id: siguienteId(lista), ...campos, activo: true }
+    actualizarLista([...lista, nuevo])
+    setMensaje(`Se agregó "${nuevo.nombre}" al candy.`)
+    setDatos(FORM_VACIO)
   }
 
-  function handleToggle(producto) {
-    setMensajeLista('')
-    actualizarLista(
-      lista.map((p) => (p.id === producto.id ? { ...p, activo: !p.activo } : p)),
-    )
+  // Baja lógica: el producto deja de ofrecerse, pero los pedidos ya hechos lo conservan.
+  function handleDarDeBaja(producto) {
+    if (producto.activo && cantidadActivos === 1) {
+      setMensaje('Tiene que quedar al menos un producto activo.')
+      return
+    }
+    actualizarLista(lista.map((p) => (p.id === producto.id ? { ...p, activo: false } : p)))
+    setMensaje(`"${producto.nombre}" fue dado de baja.`)
+    if (editandoId === producto.id) cancelarEdicion()
+  }
+
+  // Registra el retiro de un pedido: pasa a "retirado" y sale de la lista de pendientes.
+  function handleRetirar(pedido) {
+    const nuevos = pedidos.map((p) => (p.id === pedido.id ? { ...p, retirado: true } : p))
+    setPedidos(nuevos)
+    guardarPedidos(nuevos)
+    setMensajePedido(`Pedido de ${pedido.cantidad} × ${pedido.nombre} entregado.`)
   }
 
   return (
     <>
       <section className="contenedor-form" aria-labelledby="titulo-alta-candy">
-        <h2 id="titulo-alta-candy" className="titulo-paso">Agregar producto</h2>
+        <h2 id="titulo-alta-candy" className="titulo-paso">
+          {editando ? 'Editar producto' : 'Agregar producto'}
+        </h2>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="campo">
@@ -144,9 +156,7 @@ function AdminCandy() {
               aria-describedby={errores.nombre ? 'error-candy-nombre' : undefined}
             />
             {errores.nombre && (
-              <p id="error-candy-nombre" className="error" role="alert">
-                {errores.nombre}
-              </p>
+              <p id="error-candy-nombre" className="error" role="alert">{errores.nombre}</p>
             )}
           </div>
 
@@ -162,9 +172,7 @@ function AdminCandy() {
               aria-describedby={errores.descripcion ? 'error-candy-descripcion' : undefined}
             />
             {errores.descripcion && (
-              <p id="error-candy-descripcion" className="error" role="alert">
-                {errores.descripcion}
-              </p>
+              <p id="error-candy-descripcion" className="error" role="alert">{errores.descripcion}</p>
             )}
           </div>
 
@@ -182,34 +190,47 @@ function AdminCandy() {
               aria-describedby={errores.precio ? 'error-candy-precio' : undefined}
             />
             {errores.precio && (
-              <p id="error-candy-precio" className="error" role="alert">
-                {errores.precio}
-              </p>
+              <p id="error-candy-precio" className="error" role="alert">{errores.precio}</p>
             )}
           </div>
 
-          {mensajeAlta && <p role="status">{mensajeAlta}</p>}
+          <div className="campo">
+            <label htmlFor="candy-imagen">Imagen (URL, opcional)</label>
+            <input id="candy-imagen" name="imagen" type="url" placeholder="https://..." value={datos.imagen} onChange={handleChange} />
+          </div>
 
-          <button type="submit" className="boton">Agregar producto</button>
+          <label className="opcion-check">
+            <input type="checkbox" checked={datos.oferta} onChange={(e) => setDatos({ ...datos, oferta: e.target.checked })} />
+            Mostrar sello OFERTA
+          </label>
+
+          {mensaje && <p role="status">{mensaje}</p>}
+
+          <div className="hero-acciones">
+            <button type="submit" className="boton">
+              {editando ? 'Guardar cambios' : 'Agregar producto'}
+            </button>
+            {editando && (
+              <button type="button" className="boton boton-secundario" onClick={cancelarEdicion}>
+                Cancelar edición
+              </button>
+            )}
+          </div>
         </form>
       </section>
 
       <section aria-labelledby="titulo-lista-candy">
-        <h2 id="titulo-lista-candy" className="titulo-paso historial-titulo">
-          Productos de candy
-        </h2>
+        <h2 id="titulo-lista-candy" className="titulo-paso historial-titulo">Productos del candy bar</h2>
         <p className="seleccion-resumen">
           {lista.length} en total · {cantidadActivos} {cantidadActivos === 1 ? 'activo' : 'activos'}
         </p>
 
-        {mensajeLista && <p role="status">{mensajeLista}</p>}
-
         <div className="tabla-contenedor" role="region" aria-labelledby="titulo-lista-candy" tabIndex={0}>
           <table className="tabla">
-            <caption className="solo-lectores">Listado de productos de candy</caption>
+            <caption className="solo-lectores">Listado de productos</caption>
             <thead>
               <tr>
-                <th scope="col">Producto</th>
+                <th scope="col">Nombre</th>
                 <th scope="col">Descripción</th>
                 <th scope="col">Precio</th>
                 <th scope="col">Estado</th>
@@ -217,83 +238,80 @@ function AdminCandy() {
               </tr>
             </thead>
             <tbody>
-              {lista.map((p) => {
-                const enEdicion = editandoId === p.id
-                return (
-                  <tr key={p.id}>
-                    <th scope="row">{p.nombre}</th>
-                    <td>{p.descripcion}</td>
-                    <td>
-                      {/* Renderizado condicional dentro de la tabla: la celda
-                          muestra el precio o un campo para editarlo */}
-                      {enEdicion ? (
-                        <>
-                          <input
-                            type="number"
-                            className="input-precio"
-                            min="500"
-                            max="50000"
-                            value={precioEditado}
-                            onChange={(e) => setPrecioEditado(e.target.value)}
-                            aria-label={`Nuevo precio de ${p.nombre}`}
-                            aria-invalid={errorPrecio ? 'true' : 'false'}
-                          />
-                          {errorPrecio && (
-                            <p className="error" role="alert">
-                              {errorPrecio}
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        formatearPrecio(p.precio)
-                      )}
-                    </td>
-                    <td>
-                      <span className={`estado ${p.activo ? 'estado-activa' : 'estado-baja'}`}>
-                        {p.activo ? 'Activo' : 'Dado de baja'}
-                      </span>
-                    </td>
-                    <td>
-                      {enEdicion ? (
-                        <div className="acciones-tabla">
-                          <button
-                            type="button"
-                            className="boton-texto"
-                            onClick={() => handleGuardarPrecio(p)}
-                          >
-                            Guardar
-                          </button>
-                          <button type="button" className="boton-texto" onClick={handleCancelarEdicion}>
-                            Cancelar
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="acciones-tabla">
-                          <button
-                            type="button"
-                            className="boton-texto"
-                            aria-label={`Cambiar precio de ${p.nombre}`}
-                            onClick={() => handleEditar(p)}
-                          >
-                            Cambiar precio
-                          </button>
-                          <button
-                            type="button"
-                            className="boton-texto"
-                            aria-label={`${p.activo ? 'Dar de baja' : 'Reactivar'} ${p.nombre}`}
-                            onClick={() => handleToggle(p)}
-                          >
-                            {p.activo ? 'Dar de baja' : 'Reactivar'}
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
+              {lista.map((p) => (
+                <tr key={p.id}>
+                  <th scope="row">{p.nombre}</th>
+                  <td>{p.descripcion}</td>
+                  <td>{formatearPrecio(p.precio)}</td>
+                  <td>
+                    <span className={`estado ${p.activo ? 'estado-activa' : 'estado-baja'}`}>
+                      {p.activo ? 'Activo' : 'Dado de baja'}
+                    </span>
+                  </td>
+                  <td>
+                    {p.activo && (
+                      <>
+                        <button
+                          type="button"
+                          className="boton-texto"
+                          aria-label={`Editar ${p.nombre}`}
+                          onClick={() => handleEditar(p)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="boton-texto"
+                          aria-label={`Dar de baja ${p.nombre}`}
+                          onClick={() => handleDarDeBaja(p)}
+                        >
+                          Dar de baja
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+      </section>
+
+      <section aria-labelledby="titulo-pedidos-admin">
+        <h2 id="titulo-pedidos-admin" className="titulo-paso historial-titulo">Pedidos de candy pendientes</h2>
+        <p className="seleccion-resumen" aria-live="polite">
+          {pendientes.length} {pendientes.length === 1 ? 'pedido pendiente' : 'pedidos pendientes'}
+        </p>
+        {mensajePedido && <p role="status">{mensajePedido}</p>}
+
+        {pendientes.length === 0 ? (
+          <p>No hay pedidos pendientes de retiro.</p>
+        ) : (
+          <ul className="historial">
+            {pendientes.map((p) => (
+              <li key={p.id} className="historial-item">
+                <div className="historial-cabecera">
+                  <strong>{p.cantidad} × {p.nombre}</strong>
+                  <span>{p.usuario ?? 'Sin asignar'}</span>
+                </div>
+                <p className="historial-comentario">
+                  Retiro: {formatearFechaHora(fechaHoraMs(p.horarioRetiro.slice(0, 10), p.horarioRetiro.slice(11)))}
+                </p>
+                <div className="historial-pie">
+                  <span>Total {formatearPrecio(montoTotalPedido(p))}</span>
+                  <button
+                    type="button"
+                    className="boton-texto"
+                    aria-label={`Marcar como retirado el pedido de ${p.cantidad} × ${p.nombre}, id ${p.id}`}
+                    onClick={() => handleRetirar(p)}
+                  >
+                    Marcar como retirado
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   )

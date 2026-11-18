@@ -1,28 +1,32 @@
-// Pestaña "Sucursales" del panel de administración (Parte 11).
-//
-// Mismo patrón que AdminPeliculas: listar, dar de alta con validación y
-// dar de baja / reactivar. Una sucursal dada de baja deja de ofrecerse en
-// la compra de entradas, pero no se borra (baja lógica).
+// Pestaña "Sucursales" del panel de administración. Espeja /api/admin/sucursales:
+// alta (POST), edición (PUT) y baja lógica (DELETE → activa = false).
+// Una sucursal dada de baja deja de ofrecerse en la venta, pero no se borra.
 
 import { useState } from 'react'
 import { obtenerSucursales, guardarSucursales } from '../../data/sucursales'
+import { siguienteId } from '../../data/formato'
 
-const FORM_VACIO = { nombre: '', direccion: '' }
+const FORM_VACIO = { nombre: '', direccion: '', ciudad: '', telefono: '' }
+const TELEFONO_MAX = 20
 
-function validar(datos, lista) {
+function validar(datos, lista, idEditado) {
   const errores = {}
   const nombre = datos.nombre.trim()
 
   if (nombre.length < 3) {
     errores.nombre = 'Ingresá el nombre de la sucursal (mínimo 3 caracteres).'
-  } else if (lista.some((s) => s.nombre.toLowerCase() === nombre.toLowerCase())) {
+  } else if (lista.some((s) => s.id !== idEditado && s.nombre.toLowerCase() === nombre.toLowerCase())) {
     errores.nombre = 'Ya existe una sucursal con ese nombre.'
   }
-
   if (datos.direccion.trim().length < 5) {
     errores.direccion = 'Ingresá la dirección (mínimo 5 caracteres).'
   }
-
+  if (datos.ciudad.trim() === '') {
+    errores.ciudad = 'Ingresá la ciudad.'
+  }
+  if (datos.telefono.length > TELEFONO_MAX) {
+    errores.telefono = `El teléfono no puede superar los ${TELEFONO_MAX} caracteres.`
+  }
   return errores
 }
 
@@ -31,8 +35,9 @@ function AdminSucursales() {
   const [datos, setDatos] = useState(FORM_VACIO)
   const [errores, setErrores] = useState({})
   const [mensaje, setMensaje] = useState('')
-  const [aviso, setAviso] = useState('')
+  const [editandoId, setEditandoId] = useState(null)
 
+  const editando = editandoId !== null
   const cantidadActivas = lista.filter((s) => s.activa).length
 
   function actualizarLista(nueva) {
@@ -45,48 +50,72 @@ function AdminSucursales() {
     setMensaje('')
   }
 
+  function cancelarEdicion() {
+    setEditandoId(null)
+    setDatos(FORM_VACIO)
+    setErrores({})
+  }
+
+  function handleEditar(sucursal) {
+    setEditandoId(sucursal.id)
+    setDatos({
+      nombre: sucursal.nombre,
+      direccion: sucursal.direccion,
+      ciudad: sucursal.ciudad ?? '',
+      telefono: sucursal.telefono ?? '',
+    })
+    setErrores({})
+    setMensaje('')
+  }
+
   function handleSubmit(e) {
     e.preventDefault()
-    setAviso('')
 
-    const erroresEncontrados = validar(datos, lista)
+    const erroresEncontrados = validar(datos, lista, editandoId)
     setErrores(erroresEncontrados)
     if (Object.keys(erroresEncontrados).length > 0) {
       setMensaje('')
       return
     }
 
-    const nueva = {
-      id: Math.max(0, ...lista.map((s) => s.id)) + 1,
+    const campos = {
       nombre: datos.nombre.trim(),
       direccion: datos.direccion.trim(),
-      activa: true,
+      ciudad: datos.ciudad.trim(),
+      telefono: datos.telefono.trim(),
     }
 
+    if (editando) {
+      actualizarLista(lista.map((s) => (s.id === editandoId ? { ...s, ...campos } : s)))
+      setMensaje(`Se actualizó la sucursal "${campos.nombre}".`)
+      cancelarEdicion()
+      return
+    }
+
+    const nueva = { id: siguienteId(lista), ...campos, activa: true }
     actualizarLista([...lista, nueva])
     setMensaje(`Se agregó la sucursal "${nueva.nombre}".`)
     setDatos(FORM_VACIO)
   }
 
-  function handleToggle(sucursal) {
-    setMensaje('')
-
-    // Tiene que quedar al menos una sucursal activa para poder vender entradas.
-    if (sucursal.activa && cantidadActivas === 1) {
-      setAviso('Tiene que quedar al menos una sucursal activa.')
+  // Baja lógica. Tiene que quedar al menos una sucursal activa para poder vender.
+  function handleDarDeBaja(sucursal) {
+    if (cantidadActivas === 1) {
+      setErrores({})
+      setMensaje('Tiene que quedar al menos una sucursal activa.')
       return
     }
-
-    setAviso('')
-    actualizarLista(
-      lista.map((s) => (s.id === sucursal.id ? { ...s, activa: !s.activa } : s)),
-    )
+    actualizarLista(lista.map((s) => (s.id === sucursal.id ? { ...s, activa: false } : s)))
+    setMensaje(`La sucursal "${sucursal.nombre}" fue dada de baja.`)
+    if (editandoId === sucursal.id) cancelarEdicion()
   }
 
   return (
     <>
       <section className="contenedor-form" aria-labelledby="titulo-alta-sucursal">
-        <h2 id="titulo-alta-sucursal" className="titulo-paso">Agregar sucursal</h2>
+        <h2 id="titulo-alta-sucursal" className="titulo-paso">
+          {editando ? 'Editar sucursal' : 'Agregar sucursal'}
+        </h2>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="campo">
@@ -101,9 +130,7 @@ function AdminSucursales() {
               aria-describedby={errores.nombre ? 'error-suc-nombre' : undefined}
             />
             {errores.nombre && (
-              <p id="error-suc-nombre" className="error" role="alert">
-                {errores.nombre}
-              </p>
+              <p id="error-suc-nombre" className="error" role="alert">{errores.nombre}</p>
             )}
           </div>
 
@@ -119,15 +146,55 @@ function AdminSucursales() {
               aria-describedby={errores.direccion ? 'error-suc-direccion' : undefined}
             />
             {errores.direccion && (
-              <p id="error-suc-direccion" className="error" role="alert">
-                {errores.direccion}
-              </p>
+              <p id="error-suc-direccion" className="error" role="alert">{errores.direccion}</p>
+            )}
+          </div>
+
+          <div className="campo">
+            <label htmlFor="suc-ciudad">Ciudad</label>
+            <input
+              id="suc-ciudad"
+              name="ciudad"
+              type="text"
+              value={datos.ciudad}
+              onChange={handleChange}
+              aria-invalid={errores.ciudad ? 'true' : 'false'}
+              aria-describedby={errores.ciudad ? 'error-suc-ciudad' : undefined}
+            />
+            {errores.ciudad && (
+              <p id="error-suc-ciudad" className="error" role="alert">{errores.ciudad}</p>
+            )}
+          </div>
+
+          <div className="campo">
+            <label htmlFor="suc-telefono">Teléfono (opcional)</label>
+            <input
+              id="suc-telefono"
+              name="telefono"
+              type="tel"
+              maxLength={TELEFONO_MAX}
+              value={datos.telefono}
+              onChange={handleChange}
+              aria-invalid={errores.telefono ? 'true' : 'false'}
+              aria-describedby={errores.telefono ? 'error-suc-telefono' : undefined}
+            />
+            {errores.telefono && (
+              <p id="error-suc-telefono" className="error" role="alert">{errores.telefono}</p>
             )}
           </div>
 
           {mensaje && <p role="status">{mensaje}</p>}
 
-          <button type="submit" className="boton">Agregar sucursal</button>
+          <div className="hero-acciones">
+            <button type="submit" className="boton">
+              {editando ? 'Guardar cambios' : 'Agregar sucursal'}
+            </button>
+            {editando && (
+              <button type="button" className="boton boton-secundario" onClick={cancelarEdicion}>
+                Cancelar edición
+              </button>
+            )}
+          </div>
         </form>
       </section>
 
@@ -139,12 +206,6 @@ function AdminSucursales() {
           {lista.length} en total · {cantidadActivas} {cantidadActivas === 1 ? 'activa' : 'activas'}
         </p>
 
-        {aviso && (
-          <p className="error" role="alert">
-            {aviso}
-          </p>
-        )}
-
         <div className="tabla-contenedor" role="region" aria-labelledby="titulo-lista-sucursales" tabIndex={0}>
           <table className="tabla">
             <caption className="solo-lectores">Listado de sucursales</caption>
@@ -152,8 +213,9 @@ function AdminSucursales() {
               <tr>
                 <th scope="col">Nombre</th>
                 <th scope="col">Dirección</th>
+                <th scope="col">Ciudad</th>
                 <th scope="col">Estado</th>
-                <th scope="col">Acción</th>
+                <th scope="col">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -161,20 +223,33 @@ function AdminSucursales() {
                 <tr key={s.id}>
                   <th scope="row">{s.nombre}</th>
                   <td>{s.direccion}</td>
+                  <td>{s.ciudad}</td>
                   <td>
                     <span className={`estado ${s.activa ? 'estado-activa' : 'estado-baja'}`}>
                       {s.activa ? 'Activa' : 'Dada de baja'}
                     </span>
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      className="boton-texto"
-                      aria-label={`${s.activa ? 'Dar de baja' : 'Reactivar'} sucursal ${s.nombre}`}
-                      onClick={() => handleToggle(s)}
-                    >
-                      {s.activa ? 'Dar de baja' : 'Reactivar'}
-                    </button>
+                    {s.activa && (
+                      <>
+                        <button
+                          type="button"
+                          className="boton-texto"
+                          aria-label={`Editar sucursal ${s.nombre}`}
+                          onClick={() => handleEditar(s)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="boton-texto"
+                          aria-label={`Dar de baja sucursal ${s.nombre}`}
+                          onClick={() => handleDarDeBaja(s)}
+                        >
+                          Dar de baja
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -11,16 +11,17 @@ import { leer, guardar } from './almacenamiento'
 const CLAVE = 'imoovie-candy'
 
 export const productosIniciales = [
-  { id: 1, nombre: 'Pochoclo chico', descripcion: 'Salado o dulce', precio: 3500, activo: true },
-  { id: 2, nombre: 'Pochoclo mediano', descripcion: 'Salado o dulce', precio: 4800, activo: true },
-  { id: 3, nombre: 'Pochoclo grande', descripcion: 'Salado o dulce', precio: 6200, activo: true },
-  { id: 4, nombre: 'Gaseosa 500 cc', descripcion: 'Cola, lima o naranja', precio: 3200, activo: true },
-  { id: 5, nombre: 'Agua mineral', descripcion: 'Sin gas, 500 cc', precio: 2500, activo: true },
-  { id: 6, nombre: 'Nachos con cheddar', descripcion: 'Porción para compartir', precio: 5200, activo: true },
-  { id: 7, nombre: 'Chocolate', descripcion: 'Barra 50 g', precio: 2800, activo: true },
-  { id: 8, nombre: 'Combo pareja', descripcion: 'Pochoclo grande + 2 gaseosas', precio: 11500, activo: true },
+  { id: 1, nombre: 'Pochoclo chico', descripcion: 'Salado o dulce', precio: 3500, imagen: '', oferta: true, activo: true },
+  { id: 2, nombre: 'Pochoclo mediano', descripcion: 'Salado o dulce', precio: 4800, imagen: '', oferta: false, activo: true },
+  { id: 3, nombre: 'Pochoclo grande', descripcion: 'Salado o dulce', precio: 6200, imagen: '', oferta: false, activo: true },
+  { id: 4, nombre: 'Gaseosa 500 cc', descripcion: 'Cola, lima o naranja', precio: 3200, imagen: '', oferta: true, activo: true },
+  { id: 5, nombre: 'Agua mineral', descripcion: 'Sin gas, 500 cc', precio: 2500, imagen: '', oferta: false, activo: true },
+  { id: 6, nombre: 'Nachos con cheddar', descripcion: 'Porción para compartir', precio: 5200, imagen: '', oferta: false, activo: true },
+  { id: 7, nombre: 'Chocolate', descripcion: 'Barra 50 g', precio: 2800, imagen: '', oferta: false, activo: true },
+  { id: 8, nombre: 'Combo pareja', descripcion: 'Pochoclo grande + 2 gaseosas', precio: 11500, imagen: '', oferta: false, activo: true },
 ]
 
+// imagen: URL opcional de la foto del producto. oferta: muestra el sello OFERTA.
 export function obtenerProductos() {
   return leer(CLAVE, productosIniciales)
 }

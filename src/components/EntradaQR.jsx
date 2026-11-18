@@ -1,24 +1,25 @@
-// Código QR de una entrada. Se muestra en el comprobante, tanto en la compra
-// online del cliente como en la venta de entradas del mostrador.
+// Código QR de UNA entrada. En el backend cada entrada tiene su propio código
+// (UUID); acá lo mismo: cada butaca comprada tiene su QR.
 //
-// Es un componente más, con props: recibe los datos de la entrada y arma el texto
-// que va dentro del QR. Quien escanee el código con el celular ve esos datos.
+// Quien escanee el código ve el código de la entrada y los datos del comprobante.
+// Con ese código, cualquiera puede consultar la entrada en la página pública
+// "Consultar entrada" (igual que GET /api/entradas/qr/{codigo}).
 //
 // El dibujo del QR lo hace la librería "qrcode.react" (componente <QRCodeSVG>):
-// calcular un QR a mano (con su corrección de errores) es muy complejo y fácil de
-// equivocar, así que usamos una librería probada, igual que usamos react-router-dom
-// para las rutas.
+// calcular un QR a mano es muy complejo y fácil de equivocar.
 
 import { QRCodeSVG } from 'qrcode.react'
 
-function EntradaQR({ numero, pelicula, sucursal, funcion, butacas }) {
+function EntradaQR({ entradaId, codigoQR, pelicula, sucursal, funcion, butaca }) {
   // El contenido del QR: una línea por dato. .join('\n') une las líneas con saltos de línea.
   const contenido = [
-    `i-Moovie · Entrada ${numero}`,
+    'i-Moovie · Entrada',
+    `ID: ${entradaId}`,
+    `Código: ${codigoQR}`,
     `Película: ${pelicula}`,
     `Sucursal: ${sucursal}`,
     `Función: ${funcion}`,
-    `Butacas: ${butacas.join(', ')}`,
+    `Butaca: ${butaca}`,
   ].join('\n')
 
   return (
@@ -27,9 +28,9 @@ function EntradaQR({ numero, pelicula, sucursal, funcion, butacas }) {
       <div className="entrada-qr-codigo">
         {/* Un QR tiene que ser oscuro sobre claro para que los lectores lo detecten
             bien: por eso lleva fondo blanco aunque el resto de la página sea oscura.
-            - level="M": nivel medio de corrección de errores (todavía se lee si se ensucia un poco).
-            - marginSize={4}: el margen blanco de 4 cuadraditos que pide el estándar.
-            - title: el texto que lee un lector de pantalla (el dibujo en sí no se puede "leer"). */}
+            - level="M": nivel medio de corrección de errores.
+            - marginSize={4}: el margen blanco que pide el estándar.
+            - title: el texto que lee un lector de pantalla. */}
         <QRCodeSVG
           value={contenido}
           size={176}
@@ -37,10 +38,18 @@ function EntradaQR({ numero, pelicula, sucursal, funcion, butacas }) {
           marginSize={4}
           bgColor="#ffffff"
           fgColor="#0b0a09"
-          title={`Código QR de la entrada ${numero}`}
+          title={`Código QR de la butaca ${butaca}`}
         />
       </div>
-      <figcaption>Mostrá este código en el cine para ingresar.</figcaption>
+      <figcaption>
+        <strong>ID de entrada: {entradaId}</strong>
+        <br />
+        {/* El código completo se muestra en texto: es el que se pega en "Consultar entrada"
+            y en la validación del vendedor */}
+        <span className="entrada-qr-texto">Código: {codigoQR}</span>
+        <br />
+        Butaca {butaca} · Mostrá este código en el cine para ingresar.
+      </figcaption>
     </figure>
   )
 }

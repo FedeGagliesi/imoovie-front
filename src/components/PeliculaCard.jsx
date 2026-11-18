@@ -1,34 +1,39 @@
-// Tarjeta de una película en la cartelera: el afiche y, debajo, el título.
-// Toda la tarjeta es un botón: al tocarla se abre la ficha con más información.
+// Tarjeta de cartelera en formato AFICHE. Toca el afiche o el título y va a la página
+// de la película, donde se elige la función.
 //
-// PROPS: son los "parámetros" de un componente. El padre (Landing) se los
-// pasa como si fueran atributos HTML:
-//   <PeliculaCard pelicula={algo} onAbrir={funcion} />
-// y el componente los recibe como un objeto: { pelicula, onAbrir }.
-//
-// "onAbrir" es una FUNCIÓN que viene del padre: la tarjeta la llama cuando se
-// toca, y así el padre (Landing) se entera de cuál película se eligió.
+// PROPS:
+//   pelicula: los datos de la película
+//   formatos: lista de formatos disponibles para la película (ej. ['2D', 'VIP'])
+//   estado:   'Estreno' | 'Próximamente' | null (se muestra como barra debajo del afiche)
+//   promedio: calificación promedio (0 = sin calificar)
 
+import { Link } from 'react-router-dom'
 import Afiche from './Afiche'
 
-function PeliculaCard({ pelicula, onAbrir }) {
+function PeliculaCard({ pelicula, formatos, estado, promedio }) {
+  const destino = `/pelicula/${pelicula.id}`
+
   return (
-    // Es un <button> y no un <div> con onClick: así se puede usar con el teclado
-    // (Tab y Enter) y los lectores de pantalla lo anuncian como botón.
-    // aria-haspopup="dialog" avisa que al activarlo se abre una ventana.
-    <button
-      type="button"
-      className="afiche-card"
-      aria-haspopup="dialog"
-      aria-label={`${pelicula.titulo}. Ver información`}
-      onClick={() => onAbrir(pelicula)}
-    >
-      <Afiche pelicula={pelicula} />
-      <span className="afiche-titulo">{pelicula.titulo}</span>
-      <span className="afiche-datos">
-        {pelicula.genero} · {pelicula.duracion} min
-      </span>
-    </button>
+    <article className="pelicula-card">
+      <Link to={destino} className="pelicula-enlace" tabIndex={-1}>
+        <Afiche pelicula={pelicula} />
+      </Link>
+
+      <div className="pelicula-cuerpo">
+        <h3>
+          <Link to={destino} className="pelicula-titulo-enlace">{pelicula.titulo}</Link>
+        </h3>
+        <p className="pelicula-datos">{pelicula.genero}</p>
+        {formatos.length > 0 && <p className="pelicula-formatos">{formatos.join(' · ')}</p>}
+        {promedio > 0 && (
+          <p className="pelicula-datos" aria-label={`Calificación promedio ${promedio} de 5`}>
+            ★ {promedio.toLocaleString('es-AR')} / 5
+          </p>
+        )}
+      </div>
+
+      {estado && <p className="pelicula-estado">{estado}</p>}
+    </article>
   )
 }
 

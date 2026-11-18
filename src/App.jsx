@@ -23,6 +23,10 @@ import Login from './pages/Login'
 import Cliente from './pages/Cliente'
 import Vendedor from './pages/Vendedor'
 import Admin from './pages/Admin'
+import ConsultaEntrada from './pages/ConsultaEntrada'
+import Pelicula from './pages/Pelicula'
+import Comprar from './pages/Comprar'
+import Candy from './pages/Candy'
 import NotFound from './pages/NotFound'
 
 // basename: la carpeta donde está publicado el sitio (ver vite.config.js).
@@ -48,6 +52,13 @@ function App() {
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/nosotros" element={<Nosotros />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/consultar" element={<ConsultaEntrada />} />
+          <Route path="/candy" element={<Candy />} />
+          <Route path="/pelicula/:id" element={<Pelicula />} />
+          <Route
+            path="/comprar/:funcionId"
+            element={<RutaProtegida rol="cliente"><Comprar /></RutaProtegida>}
+          />
           {/* Estas tres rutas están protegidas: sin la sesión del rol
               correcto, RutaProtegida redirige a /login */}
           <Route
