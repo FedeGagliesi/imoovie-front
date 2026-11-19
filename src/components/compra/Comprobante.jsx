@@ -1,10 +1,9 @@
-// Comprobante final: un QR por entrada, como en la compra online del backend.
+// Comprobante final: un solo QR por compra, con todas sus butacas listadas debajo.
 //
 // PROPS: compra ({ numeroCompra, entradas, totales, metodoPago }), pelicula, sucursal, sala, etiquetaFuncionTexto.
 
-import CarruselQR from '../CarruselQR'
+import ComprobanteQR from '../ComprobanteQR'
 import { formatearPrecio } from '../../data/formato'
-import { TIPOS_BUTACA } from '../../data/salas'
 
 function Comprobante({ compra, pelicula, sucursal, sala, etiquetaFuncionTexto }) {
   return (
@@ -18,13 +17,9 @@ function Comprobante({ compra, pelicula, sucursal, sala, etiquetaFuncionTexto })
         <strong>Total {formatearPrecio(compra.totales.total)}</strong> · pagado con {compra.metodoPago}
       </p>
 
-      <CarruselQR
-        entradas={compra.entradas.map((e) => ({
-          id: e.id,
-          codigoQR: e.codigoQR,
-          butaca: e.butaca,
-          tipo: TIPOS_BUTACA[sala.butacas.find((b) => b.id === e.butaca)?.tipo ?? 'NORMAL'],
-        }))}
+      <ComprobanteQR
+        grupo={compra}
+        sala={sala}
         pelicula={pelicula.titulo}
         sucursal={sucursal.nombre}
         funcion={etiquetaFuncionTexto}

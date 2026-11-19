@@ -1,28 +1,23 @@
 // "Mis entradas": UNA tarjeta por compra, con todas sus butacas juntas.
-// Espeja /api/cliente/entradas del backend (listar, reprogramar, cancelar, calificar).
+// Espeja /api/cliente/entradas del backend (listar y calificar).
 //
 // El backend opera entrada por entrada. Acá la persona opera la compra completa, y la
 // acción se aplica a cada entrada de esa compra:
-//   - Ver QR: un código por butaca.
-//   - Reprogramar: elige función y vuelve a elegir la misma cantidad de butacas en el mapa.
-//   - Cancelar: cancela las entradas vigentes (libera las butacas).
+//   - Ver QR: el único código QR de la compra, con sus butacas listadas.
 //   - Calificar: una calificación para la película, guardada en cada entrada.
 //
-// Reglas del backend: solo entradas propias; UTILIZADA y CANCELADA no se operan;
-// reprogramar y cancelar solo antes de que empiece la función; calificar solo después.
+// Regla del backend: solo entradas propias; calificar solo después de que empieza la función.
 
 import { useState } from 'react'
-import { obtenerEntradas, guardarEntradas, butacasLibres, estaVigente, agruparPorCompra, ESTADOS } from '../data/entradas'
+import { obtenerEntradas, guardarEntradas, estaVigente, agruparPorCompra, ESTADOS } from '../data/entradas'
 import { obtenerFunciones, inicioFuncion, haComenzado, etiquetaFuncion } from '../data/funciones'
 import { obtenerPeliculas } from '../data/peliculas'
 import { obtenerSalas, TIPOS_BUTACA } from '../data/salas'
 import { obtenerSucursales } from '../data/sucursales'
 import { obtenerSesion } from '../data/sesion'
-import { pedidosAsociadosA, cancelarPedidos } from '../data/pedidos'
 import { formatearFechaHora, formatearPrecio } from '../data/formato'
 import Estrellas from './Estrellas'
-import CarruselQR from './CarruselQR'
-import MapaSala from './compra/MapaSala'
+import ComprobanteQR from './ComprobanteQR'
 
 // Busca película, sala y sucursal de una función.
 function datosDeFuncion(funcion) {
@@ -42,9 +37,9 @@ function MisEntradas() {
   const funciones = obtenerFunciones()
   const compras = agruparPorCompra(todas.filter((e) => e.usuario === email), funciones)
 
-  // Acción abierta en una compra: { numeroCompra, accion } con accion 'qr' | 'reprogramar' | 'cancelar' | 'calificar'
+  // Acción abierta en una compra: { numeroCompra, accion } con accion 'qr' | 'calificar'
   const [abierta, setAbierta] = useState(null)
-  const [borrador, setBorrador] = useState({ funcionId: '', butacas: [], estrellas: 0, comentario: '' })
+  const [borrador, setBorrador] = useState({ estrellas: 0, comentario: '' })
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
 
@@ -62,62 +57,12 @@ function MisEntradas() {
     setError('')
     setMensaje('')
     setAbierta({ numeroCompra, accion })
-    setBorrador({ funcionId: '', butacas: [], estrellas: calificacion || 0, comentario: comentario || '' })
+    setBorrador({ estrellas: calificacion || 0, comentario: comentario || '' })
   }
 
   function cerrar() {
     setAbierta(null)
     setError('')
-  }
-
-  // ---------- Reprogramar ----------
-  function handleReprogramar(grupo, vigentes) {
-    const nueva = funciones.find((f) => f.id === Number(borrador.funcionId))
-    const { sala } = nueva ? datosDeFuncion(nueva) : {}
-    if (!nueva || !sala || !nueva.activa) {
-      setError('Elegí una función disponible.')
-      return
-    }
-    if (haComenzado(nueva)) {
-      setError('La función elegida ya comenzó.')
-      return
-    }
-    if (borrador.butacas.length !== vigentes.length) {
-      setError(`Elegí ${vigentes.length} butaca${vigentes.length > 1 ? 's' : ''} para la nueva función.`)
-      return
-    }
-    const libres = butacasLibres(nueva, sala, todas).map((b) => b.id)
-    const tomadas = borrador.butacas.filter((b) => !libres.includes(b))
-    if (tomadas.length > 0) {
-      setError(`Estas butacas ya no están libres: ${tomadas.join(', ')}.`)
-      return
-    }
-
-    // Asigna las butacas nuevas en orden a cada entrada vigente.
-    const nuevas = [...borrador.butacas].sort()
-    const ordenVigentes = vigentes.map((e) => e.id)
-    cambiarCompra(grupo.numeroCompra, (e) => {
-      const i = ordenVigentes.indexOf(e.id)
-      if (i < 0) return e
-      return { ...e, funcionId: nueva.id, sucursalId: sala.sucursalId, butaca: nuevas[i], estado: 'REPROGRAMADA' }
-    })
-    setMensaje('Compra reprogramada. Los códigos QR siguen siendo los mismos.')
-    cerrar()
-  }
-
-  // ---------- Cancelar ----------
-  // Cancela las entradas vigentes de la compra. Si "conCandy" es true, también
-  // cancela los pedidos de candy asociados a esas entradas.
-  function handleCancelar(grupo, conCandy) {
-    cambiarCompra(grupo.numeroCompra, (e) => (estaVigente(e) ? { ...e, estado: 'CANCELADA' } : e))
-    let mensajeFinal = 'Compra cancelada. Las butacas quedaron disponibles para la venta.'
-    if (conCandy) {
-      const ids = pedidosAsociadosA(email, grupo.entradas.map((e) => e.id)).map((p) => p.id)
-      cancelarPedidos(ids)
-      if (ids.length > 0) mensajeFinal += ' También se cancelaron los pedidos de candy asociados.'
-    }
-    setMensaje(mensajeFinal)
-    cerrar()
   }
 
   // ---------- Calificar ----------
@@ -132,9 +77,7 @@ function MisEntradas() {
       setError('Todavía no podés calificar una función que no comenzó.')
       return
     }
-    cambiarCompra(grupo.numeroCompra, (e) =>
-      e.estado === 'CANCELADA' ? e : { ...e, calificacion: estrellas, comentario: borrador.comentario.trim() },
-    )
+    cambiarCompra(grupo.numeroCompra, (e) => ({ ...e, calificacion: estrellas, comentario: borrador.comentario.trim() }))
     setMensaje('¡Gracias! Tu calificación quedó guardada.')
     cerrar()
   }
@@ -155,23 +98,11 @@ function MisEntradas() {
             const { pelicula, sala, sucursal } = funcion ? datosDeFuncion(funcion) : {}
             const comenzo = funcion ? haComenzado(funcion) : true
             const vigentes = grupo.entradas.filter(estaVigente)
-            const noCanceladas = grupo.entradas.filter((e) => e.estado !== 'CANCELADA')
-            const operable = vigentes.length > 0 && !comenzo
             const calificacion = Math.max(...grupo.entradas.map((e) => e.calificacion))
             const comentario = grupo.entradas.find((e) => e.comentario)?.comentario ?? ''
             const total = grupo.entradas.reduce((s, e) => s + e.monto, 0)
             const accion = abierta && abierta.numeroCompra === grupo.numeroCompra ? abierta.accion : null
             const estados = [...new Set(grupo.entradas.map((e) => ESTADOS[e.estado]))].join(' · ')
-            const candyAsociado = pedidosAsociadosA(email, grupo.entradas.map((e) => e.id))
-
-            // Opciones de reprogramación: funciones futuras y activas, distintas de la actual.
-            const opcionesFuncion = funciones.filter((f) => f.activa && !haComenzado(f) && f.id !== primera.funcionId)
-            const funcionNueva = funciones.find((f) => f.id === Number(borrador.funcionId))
-            const datosNueva = funcionNueva ? datosDeFuncion(funcionNueva) : null
-            const libresNueva = datosNueva?.sala ? butacasLibres(funcionNueva, datosNueva.sala, todas).map((b) => b.id) : []
-            const ocupadasNueva = datosNueva?.sala
-              ? datosNueva.sala.butacas.map((b) => b.id).filter((id) => !libresNueva.includes(id))
-              : []
 
             return (
               <li key={grupo.numeroCompra} className="compra-tarjeta">
@@ -211,17 +142,7 @@ function MisEntradas() {
                     <button type="button" className="boton-texto" onClick={() => abrir(grupo.numeroCompra, 'qr')}>
                       Ver códigos QR
                     </button>
-                    {operable && (
-                      <>
-                        <button type="button" className="boton-texto" onClick={() => abrir(grupo.numeroCompra, 'reprogramar')}>
-                          Reprogramar
-                        </button>
-                        <button type="button" className="boton-texto" onClick={() => abrir(grupo.numeroCompra, 'cancelar')}>
-                          Cancelar compra
-                        </button>
-                      </>
-                    )}
-                    {noCanceladas.length > 0 && comenzo && (
+                    {comenzo && (
                       <button type="button" className="boton-texto" onClick={() => abrir(grupo.numeroCompra, 'calificar', calificacion, comentario)}>
                         {calificacion > 0 ? 'Editar calificación' : 'Calificar película'}
                       </button>
@@ -231,96 +152,15 @@ function MisEntradas() {
 
                 {accion === 'qr' && funcion && pelicula && sucursal && (
                   <>
-                    <CarruselQR
-                      entradas={grupo.entradas.map((e) => ({
-                        id: e.id,
-                        codigoQR: e.codigoQR,
-                        butaca: e.butaca,
-                        tipo: TIPOS_BUTACA[sala?.butacas.find((b) => b.id === e.butaca)?.tipo ?? 'NORMAL'],
-                      }))}
+                    <ComprobanteQR
+                      grupo={grupo}
+                      sala={sala}
                       pelicula={pelicula.titulo}
                       sucursal={sucursal.nombre}
                       funcion={etiquetaFuncion(funcion, sala)}
                     />
                     <button type="button" className="boton-texto" onClick={cerrar}>Cerrar</button>
                   </>
-                )}
-
-                {accion === 'cancelar' && (
-                  <div className="formulario-accion">
-                    <p>¿Seguro que querés cancelar la compra? Se liberan {vigentes.length} butacas.</p>
-                    {candyAsociado.length > 0 && (
-                      <p>
-                        Tenés {candyAsociado.length} {candyAsociado.length === 1 ? 'pedido de candy asociado' : 'pedidos de candy asociados'} a esta función.
-                        ¿Querés cancelarlos también?
-                      </p>
-                    )}
-                    <div className="hero-acciones">
-                      {candyAsociado.length > 0 ? (
-                        <>
-                          <button type="button" className="boton" onClick={() => handleCancelar(grupo, true)}>
-                            Sí, cancelar entradas y candy
-                          </button>
-                          <button type="button" className="boton boton-secundario" onClick={() => handleCancelar(grupo, false)}>
-                            Solo las entradas
-                          </button>
-                        </>
-                      ) : (
-                        <button type="button" className="boton" onClick={() => handleCancelar(grupo, false)}>Sí, cancelar</button>
-                      )}
-                      <button type="button" className="boton boton-secundario" onClick={cerrar}>No, volver</button>
-                    </div>
-                  </div>
-                )}
-
-                {accion === 'reprogramar' && (
-                  <form
-                    className="formulario-accion"
-                    onSubmit={(e) => { e.preventDefault(); handleReprogramar(grupo, vigentes) }}
-                    noValidate
-                  >
-                    <p>Elegí la nueva función y {vigentes.length} butaca{vigentes.length > 1 ? 's' : ''} en el mapa.</p>
-                    <div className="campo">
-                      <label htmlFor={`rep-${grupo.numeroCompra}`}>Nueva función</label>
-                      <select
-                        id={`rep-${grupo.numeroCompra}`}
-                        value={borrador.funcionId}
-                        onChange={(e) => setBorrador({ ...borrador, funcionId: e.target.value, butacas: [] })}
-                      >
-                        <option value="">Elegí una función…</option>
-                        {opcionesFuncion.map((f) => {
-                          const d = datosDeFuncion(f)
-                          if (!d.pelicula || !d.sala || !d.sucursal) return null
-                          return (
-                            <option key={f.id} value={f.id}>
-                              {d.pelicula.titulo} · {d.sucursal.nombre} · {etiquetaFuncion(f, d.sala)} · {f.formato ?? '2D'}
-                            </option>
-                          )
-                        })}
-                      </select>
-                    </div>
-
-                    {datosNueva?.sala && (
-                      <MapaSala
-                        butacas={datosNueva.sala.butacas}
-                        ocupadas={ocupadasNueva}
-                        seleccionadas={borrador.butacas}
-                        onToggle={(id) => {
-                          setError('')
-                          const sel = borrador.butacas
-                          if (sel.includes(id)) setBorrador({ ...borrador, butacas: sel.filter((b) => b !== id) })
-                          else if (sel.length < vigentes.length) setBorrador({ ...borrador, butacas: [...sel, id] })
-                          else setError(`Elegí ${vigentes.length} butaca${vigentes.length > 1 ? 's' : ''}, no más.`)
-                        }}
-                      />
-                    )}
-
-                    {error && <p className="error" role="alert">{error}</p>}
-                    <div className="hero-acciones">
-                      <button type="submit" className="boton">Confirmar cambio</button>
-                      <button type="button" className="boton boton-secundario" onClick={cerrar}>Volver</button>
-                    </div>
-                  </form>
                 )}
 
                 {accion === 'calificar' && (

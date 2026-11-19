@@ -26,7 +26,7 @@ Un cine con **tres tipos de usuario**, cada uno con su propia zona:
 
 | Rol | Qué hace |
 |---|---|
-| **Cliente** | Elige una película de la cartelera, filtra sus horarios (cine, formato, idioma), elige sus butacas en un mapa, suma candy, paga y recibe un comprobante con un **código QR** por butaca. Después puede ver, reprogramar y cancelar sus entradas, calificar películas y ver sus estadísticas. |
+| **Cliente** | Elige una película de la cartelera, filtra sus horarios (cine, formato, idioma), elige sus butacas en un mapa, suma candy, paga y recibe un comprobante con un **único código QR por compra**. Después puede ver sus entradas (con ese mismo QR) y calificar películas. |
 | **Vendedor** | Trabaja en una sucursal: **vende entradas en el mostrador** a quien no compró online (elige función, fila y asiento, y cobra), vende candy sin cuenta de cliente, entrega los pedidos de candy que los clientes hicieron online y ve lo vendido en el día. |
 | **Administrador** | Gestiona películas, funciones, salas, sucursales y productos de candy; ve las entradas vendidas y los reportes. |
 
@@ -43,8 +43,8 @@ El front replica las funcionalidades de la API de `i-Moovie - Entrega` (53 endpo
 | Auth: registro y login (email + contraseña) | `pages/Login.jsx` (pestañas Ingresar / Crear cuenta) |
 | Públicos: películas, cartelera con filtros, funciones, butacas libres | `pages/Landing.jsx` (cartelera), `pages/Pelicula.jsx` (ficha de la película con horarios por cine, formato e idioma), `components/pelicula/`, `components/MapaButacas.jsx` |
 | Públicos: consulta de entrada por QR | `pages/ConsultaEntrada.jsx` (ruta `/consultar`) |
-| Cliente: comprar, listar, reprogramar, cancelar, calificar, estadísticas | `pages/Comprar.jsx` (compra en 3 pasos: butacas, candy y pago) y `components/compra/`, `components/MisEntradas.jsx`, `components/Estadisticas.jsx` |
-| Cliente: candy (productos, pedidos, mis pedidos) | `pages/Candy.jsx` (tienda pública), `components/compra/PasoCandy.jsx` (candy de la compra), `components/MisPedidos.jsx` |
+| Cliente: comprar, listar, calificar | `pages/Comprar.jsx` (compra en 3 pasos: butacas, candy y pago) y `components/compra/`, `components/MisEntradas.jsx`, `components/ComprobanteQR.jsx` |
+| Cliente: candy (productos y pedidos) | `pages/Candy.jsx` (tienda pública), `components/compra/PasoCandy.jsx` (candy de la compra) |
 | Vendedor: vender en mostrador, mis ventas, validar entrada en puerta | `components/vendedor/MostradorEntradas.jsx`, `components/vendedor/MisVentas.jsx`, `components/vendedor/ValidarEntrada.jsx` |
 | Admin: películas (alta, edición, baja) | `components/admin/AdminPeliculas.jsx` |
 | Admin: funciones (alta, edición, duplicar, baja) | `components/admin/AdminFunciones.jsx` |
@@ -54,7 +54,9 @@ El front replica las funcionalidades de la API de `i-Moovie - Entrega` (53 endpo
 | Admin: listado y detalle de entradas | `components/admin/AdminEntradas.jsx` |
 | Admin: reportes (ranking de ventas y de calificación, alertas de poca venta, panel de candy) | `components/admin/AdminReportes.jsx` |
 
-Reglas del backend que se copian en el front: solapamiento de funciones con 15 minutos de limpieza (`data/funciones.js`), butacas generadas por sala en filas de 10 con tipos VIP / Premium / Normal (`data/salas.js`), una entrada por butaca con su QR (`data/entradas.js`), calificación solo después de que empieza la función, y baja lógica en lugar de borrado.
+Reglas del backend que se copian en el front: solapamiento de funciones con 15 minutos de limpieza (`data/funciones.js`), butacas generadas por sala en filas de 10 con tipos VIP / Premium / Normal (`data/salas.js`), una entrada por butaca y un único QR por compra (`data/entradas.js`), calificación solo después de que empieza la función, y baja lógica en lugar de borrado.
+
+En esta versión el front **no incluye** reprogramar ni cancelar una compra, "Mis pedidos de candy" ni "Mis estadísticas" (ver la Parte 25). Por eso una entrada tiene solo dos estados: **DISPONIBLE** (recién comprada) y **UTILIZADA** (validada en la puerta).
 
 Diferencias a propósito, que son de la interfaz y no del backend: la venta de candy en mostrador con medio de pago, y los filtros de horario y precio del buscador.
 
@@ -83,8 +85,8 @@ En el login se ingresa con email y contraseña. El rol viene con la cuenta: no h
 
 1. **Landing:** mirar la cartelera, filtrar por género; entrar como `cliente@imoovie.com`.
 2. **Comprar entradas:** usar los filtros del buscador, elegir una función, elegir butacas (cada una genera su entrada con QR), sumar candy y confirmar.
-3. **Mis entradas:** reprogramar una entrada, cancelarla, ver su QR y, si la función ya empezó, calificar la película.
-4. **Mis estadísticas:** el resumen personal de películas, gasto y calificaciones.
+3. **Mis entradas:** ver el QR de la compra (uno solo, con todas las butacas listadas) y, si la función ya empezó, calificar la película.
+4. **Consultar entrada** (`/consultar`, sin sesión): escribir el número de compra y ver la función con sus butacas.
 5. **Salir** y entrar como `vendedor@imoovie.com`: **vender entradas en el mostrador** (el nombre del cliente es obligatorio), **validar una entrada en la puerta** (la segunda lectura del mismo QR da error) y ver las ventas.
 6. **Salir** y entrar como `admin@imoovie.com`: programar una función (el sistema rechaza horarios solapados en la misma sala), duplicarla, dar de baja una sala, registrar el retiro de un pedido de candy y revisar los reportes.
 
@@ -106,7 +108,7 @@ localStorage.clear(); sessionStorage.clear()
 | **Vite** | Levanta el servidor de desarrollo, recarga la página al guardar y genera la versión final. |
 | **React 19** | Librería para armar la interfaz con componentes. |
 | **react-router-dom** | Manejo de rutas (`/`, `/login`, `/admin`, ...). Se usa en toda la aplicación. |
-| **qrcode.react** | Dibuja el **código QR** de la entrada (componente `<QRCodeSVG>`). Es la segunda y última librería extra. |
+| **qrcode.react** | Dibuja el **código QR** de la compra (componente `<QRCodeSVG>`). Es la segunda y última librería extra. |
 | **Oxlint** | Revisa el código buscando errores y malas prácticas. |
 | **Google Fonts** | Tipografías *Big Shoulders Display* (títulos) y *DM Sans* (texto). Sin conexión se usa la del sistema. |
 
@@ -141,8 +143,8 @@ imoovie-front/
     │
     ├── components/     → piezas reutilizables
     │   ├── NavBar.jsx, Footer.jsx, Logo.jsx, Afiche.jsx, PeliculaCard.jsx, IntegranteCard.jsx, RutaProtegida.jsx, TituloDePagina.jsx
-    │   ├── MapaButacas.jsx, ProductoCandy.jsx, EntradaQR.jsx, CarruselQR.jsx, Estrellas.jsx, EstrellasFijas.jsx
-    │   ├── MisEntradas.jsx, MisPedidos.jsx, Estadisticas.jsx → las pestañas de la zona cliente
+    │   ├── MapaButacas.jsx, ProductoCandy.jsx, ComprobanteQR.jsx, Estrellas.jsx, EstrellasFijas.jsx
+    │   ├── MisEntradas.jsx → "Mis entradas" de la zona cliente (ver el QR de cada compra y calificar)
     │   ├── compra/      → los pasos de la compra: PasoButacas, MapaSala, PasoCandy, PasoPago, ResumenCompra, Comprobante
     │   ├── pelicula/    → FranjaFechas, HorariosPorCine (los horarios de la página de una película)
     │   ├── vendedor/    → MostradorEntradas, MostradorCandy, ValidarEntrada, MisVentas (las pestañas del vendedor)
@@ -170,17 +172,17 @@ La regla es simple: **`pages/`** arma cada pantalla, **`components/`** son las p
 | `/` | Landing | Todos | Hero, carta de presentación de la plataforma y cartelera de afiches de las películas activas |
 | `/pelicula/:id` | Película | Todos | Ficha de la película y sus horarios, filtrables por cine, formato e idioma; al elegir un horario se pasa a la compra |
 | `/candy` | Candy | Todos | Tienda de candy: elegir productos y horario de retiro |
-| `/consultar` | Consultar entrada | Todos | Datos reducidos de una entrada a partir del código de su QR (sin sesión) |
-| `/comprar/:funcionId` | Comprar | Solo clientes | Compra en 3 pasos: butacas, candy y pago; termina en el comprobante con un QR por butaca |
+| `/consultar` | Consultar entrada | Todos | Datos de una compra (función y butacas) a partir de su número de compra, el que codifica su QR (sin sesión) |
+| `/comprar/:funcionId` | Comprar | Solo clientes | Compra en 3 pasos: butacas, candy y pago; termina en el comprobante con un único QR por compra |
 | `/contacto` | Contacto | Todos | Formulario con validación y confirmación |
 | `/nosotros` | Quiénes somos | Todos | Presentación del grupo, tarjetas de los integrantes y enlace a Contacto. Su enlace en el menú se ve siempre, con o sin sesión |
 | `/login` | Login | Todos | Usuario, contraseña y rol; redirige a la zona del rol |
-| `/cliente` | Mi cine | Solo clientes | Pestañas: **Mis entradas** (ver QR, reprogramar, cancelar, calificar), **Mis pedidos de candy**, **Mis estadísticas** |
+| `/cliente` | Mi cine | Solo clientes | **Mis entradas**: una tarjeta por compra, con su QR único y la calificación de la película |
 | `/vendedor` | Mostrador | Solo vendedores | Sucursal y pestañas: **Vender entradas** (función, fila y asiento, cobro con comprobante y QR), **Candy y pedidos**, **Validar entrada** (control de acceso en la puerta) y **Mis ventas** |
 | `/admin` | Panel admin | Solo administradores | Pestañas: **Películas**, **Funciones**, **Salas**, **Sucursales**, **Candy**, **Entradas** y **Reportes** |
 | cualquier otra | Página 404 | Todos | Mensaje y botones para volver |
 
-Las tres rutas de zona están **protegidas**: sin la sesión del rol correcto redirigen a `/login` (componente `RutaProtegida`). Dentro de `/cliente` y `/admin` las pestañas **no son rutas**: se resuelven con un estado y renderizado condicional.
+Las tres rutas de zona están **protegidas**: sin la sesión del rol correcto redirigen a `/login` (componente `RutaProtegida`). Dentro de `/admin` (y de `/vendedor`) las pestañas **no son rutas**: se resuelven con un estado y renderizado condicional.
 
 ---
 
@@ -1084,7 +1086,7 @@ Como los colores nuevos de la cartelera estilo cine (Parte 21) ya estaban escrit
 
 ## Parte 24 · Versión 2: compra por pasos, salas, reportes y validación de entradas
 
-> **Ramas del repositorio:** `version-1` guarda la versión anterior (cartelera con ficha emergente) y `version-2` / `main` tienen esta versión.
+> **Ramas del repositorio:** `version-1` guarda la versión anterior (cartelera con ficha emergente), `version-2` / `main` tienen la versión 2 completa y `version-3` es la versión 2 recortada (Parte 25).
 
 **Qué se hizo:** se integró la versión 2 del frontend sobre la base que ya estaba publicada. Sigue siendo solo frontend con datos simulados, pero ahora replica toda la API del backend (ver *Cobertura de la API del backend*).
 
@@ -1106,3 +1108,28 @@ Como los colores nuevos de la cartelera estilo cine (Parte 21) ya estaban escrit
 **Verificación:** `npm run lint` sin avisos y `npm run build` correcto. Se recorrió en el navegador: login de los tres roles, compra completa (butacas → candy → pago → comprobante con QR), *Mis entradas / pedidos / estadísticas*, consulta de una entrada por su código, validación en puerta (la segunda lectura se rechaza) y las siete pestañas del admin. Sin errores en consola. (Se probó con la paleta Grafito; la paleta negra solo cambia los valores de las variables de color.)
 
 **Archivos tocados al integrar:** `src/App.jsx` (`basename`), `vite.config.js` (`base`), `.github/workflows/deploy.yml`, `src/components/EntradaQR.jsx` y `src/App.css` (el código de la entrada en texto) y `DOCUMENTACION.md`. El resto del código es el de la versión 2 tal cual.
+
+---
+
+## Parte 25 · Versión 3: un QR por compra y un modelo de estados más simple
+
+**Qué se hizo:** un recorte de la versión 2 (rama `version-3`). Se sacaron funciones que no se necesitan y se simplificó lo que dependía de ellas.
+
+**Qué cambió:**
+
+| Tema | Antes (versión 2) | Ahora |
+|---|---|---|
+| Acciones en *Mis entradas* | Ver QR, reprogramar, cancelar, calificar | Solo **ver el QR** y **calificar** |
+| Estados de una entrada | DISPONIBLE, UTILIZADA, CANCELADA, REPROGRAMADA | Solo **DISPONIBLE** y **UTILIZADA**. Como ya no existe ninguna acción que genere los otros dos, se sacaron de `ESTADOS`, de `estaVigente()`, de `butacasOcupadas()` (toda entrada ocupa su butaca) y de los reportes |
+| Comprobante | Un QR por butaca, en un carrusel (`CarruselQR` + `EntradaQR`) | **Un solo QR por compra** (`ComprobanteQR.jsx`): su contenido es el `numeroCompra` que ya comparten todas las entradas de la compra, y debajo se listan las butacas con su tipo (VIP / Premium / Normal) |
+| Validar en la puerta | Se escribía el código de cada entrada | Se escribe el **número de compra**: las butacas DISPONIBLES pasan a UTILIZADA juntas; si todas ya estaban usadas avisa que la compra ya ingresó |
+| Consultar entrada (`/consultar`) | Datos de una butaca | Datos de la función **una vez** con la lista de butacas de la compra (`detallesCompra` en `data/entradas.js`, que reutiliza `detalleEntrada`) |
+| Zona cliente | Pestañas *Mis entradas*, *Mis pedidos de candy*, *Mis estadísticas* | Solo *Mis entradas* (sin barra de pestañas) |
+
+**Concepto:** ningún concepto de React nuevo. Se reutiliza el `numeroCompra` en lugar de inventar un identificador nuevo, y un componente (`ComprobanteQR`) recibe la compra completa (la misma forma que arma `agruparPorCompra`) y la usan tres pantallas: el fin de la compra, *Mis entradas* y la venta en mostrador.
+
+**Qué queda igual:** el registro (*Crear cuenta*), la tienda `/candy`, la página de película, las salas, los reportes (salvo que ya no descuentan canceladas), *Admin > Entradas*, la paleta y la publicación en GitHub Pages.
+
+**Archivos borrados:** `src/components/CarruselQR.jsx`, `src/components/EntradaQR.jsx`, `src/components/MisPedidos.jsx`, `src/components/Estadisticas.jsx`.
+**Archivo nuevo:** `src/components/ComprobanteQR.jsx`.
+**Archivos tocados:** `src/components/MisEntradas.jsx`, `src/components/compra/Comprobante.jsx`, `src/components/vendedor/ValidarEntrada.jsx`, `src/components/vendedor/MostradorEntradas.jsx` (usa `ComprobanteQR` en lugar de `EntradaQR`), `src/components/admin/AdminReportes.jsx`, `src/pages/ConsultaEntrada.jsx`, `src/pages/Cliente.jsx`, `src/data/entradas.js` y `DOCUMENTACION.md`.

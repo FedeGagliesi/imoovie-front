@@ -27,8 +27,7 @@ import {
   generarCodigoQR,
   siguienteId,
 } from '../../data/formato'
-import { TIPOS_BUTACA } from '../../data/salas'
-import EntradaQR from '../EntradaQR'
+import ComprobanteQR from '../ComprobanteQR'
 import MapaButacas from '../MapaButacas'
 
 const MAX_BUTACAS = 6
@@ -168,7 +167,7 @@ function MostradorEntradas({ sucursalId }) {
     const entradasActuales = obtenerEntradas()
     let proximoId = siguienteId(entradasActuales)
 
-    // Una entrada por butaca, cada una con su QR. Sin cuenta de cliente (usuario: null).
+    // Una entrada por butaca (todas con el mismo numeroCompra). Sin cuenta de cliente (usuario: null).
     const nuevas = butacasOrdenadas.map((butaca) => ({
       id: proximoId++,
       codigoQR: generarCodigoQR(),
@@ -195,7 +194,7 @@ function MostradorEntradas({ sucursalId }) {
       sucursal: elegido.sucursal.nombre,
       funcion: etiquetaFuncion(elegido.funcion, salaElegida),
       entradas: nuevas,
-      tipos: Object.fromEntries(salaElegida.butacas.map((b) => [b.id, b.tipo])),
+      sala: salaElegida,
       total,
       pago,
       cliente: nombreCliente,
@@ -233,20 +232,14 @@ function MostradorEntradas({ sucursalId }) {
             </strong>
           </p>
 
-          {/* Una entrada con QR por butaca, igual que en la compra online */}
-          <div className="entradas-qr-lista">
-            {comprobante.entradas.map((e) => (
-              <EntradaQR
-                key={e.id}
-                entradaId={e.id}
-                codigoQR={e.codigoQR}
-                pelicula={comprobante.pelicula}
-                sucursal={comprobante.sucursal}
-                funcion={comprobante.funcion}
-                butaca={`${e.butaca} (${TIPOS_BUTACA[comprobante.tipos[e.butaca]]})`}
-              />
-            ))}
-          </div>
+          {/* Un solo QR por venta, igual que en la compra online */}
+          <ComprobanteQR
+            grupo={comprobante}
+            sala={comprobante.sala}
+            pelicula={comprobante.pelicula}
+            sucursal={comprobante.sucursal}
+            funcion={comprobante.funcion}
+          />
         </article>
         <button type="button" className="boton" onClick={handleNuevaVenta}>
           Nueva venta

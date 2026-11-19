@@ -4,7 +4,7 @@
 //   - Alertas de poca venta: funciones activas con menos entradas que el umbral (por defecto 5).
 //   - Panel de candy: pedidos pendientes agrupados por horario de retiro, con la recaudación esperada.
 //
-// Las entradas canceladas no cuentan como ventas (la butaca volvió a la venta).
+// Cada entrada emitida cuenta como una venta.
 
 import { useState } from 'react'
 import { obtenerEntradas, promedioPelicula } from '../../data/entradas'
@@ -27,11 +27,9 @@ function AdminReportes() {
 
   const [umbralTexto, setUmbralTexto] = useState(String(UMBRAL_POR_DEFECTO))
 
-  // Entradas vendidas que cuentan (no canceladas), por función.
+  // Entradas vendidas, por función.
   const vendidasPorFuncion = new Map()
-  entradas
-    .filter((e) => e.estado !== 'CANCELADA')
-    .forEach((e) => vendidasPorFuncion.set(e.funcionId, (vendidasPorFuncion.get(e.funcionId) || 0) + 1))
+  entradas.forEach((e) => vendidasPorFuncion.set(e.funcionId, (vendidasPorFuncion.get(e.funcionId) || 0) + 1))
 
   // 1) Ranking por ventas: suma las entradas de todas las funciones de cada película.
   const rankingVentas = peliculas

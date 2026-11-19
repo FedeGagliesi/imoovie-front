@@ -1,27 +1,28 @@
 // ENTRADAS (mock). Espejan la entidad Entrada del backend.
 //
 // A diferencia de una "compra", acá hay UNA entrada por butaca: si una persona
-// compra tres butacas, se guardan tres entradas, cada una con su propio código QR.
-// Las tres comparten "numeroCompra" para mostrarlas juntas en el comprobante.
+// compra tres butacas, se guardan tres entradas. Las tres comparten "numeroCompra",
+// que es lo que codifica el ÚNICO código QR de la compra (ver ComprobanteQR.jsx).
 //
 //   {
-//     id, codigoQR, numeroCompra,
+//     id, numeroCompra,              // numeroCompra es lo que codifica el QR; codigoQR es un identificador propio de cada entrada (lo ve el admin)
+//     codigoQR,
 //     funcionId, sucursalId, butaca: 'C4',
 //     monto,                         // lo que se pagó por esa butaca
 //     canal: 'ONLINE' | 'SUCURSAL',
 //     usuario: email | null,         // cliente con cuenta (null en mostrador)
 //     vendedor: email | null,        // vendedor que la emitió (solo mostrador)
 //     clienteMostrador, pago,        // datos de la venta en mostrador
-//     estado: 'DISPONIBLE' | 'UTILIZADA' | 'CANCELADA' | 'REPROGRAMADA',
+//     estado: 'DISPONIBLE' | 'UTILIZADA',
 //     calificacion, comentario,      // 0 = sin calificar
 //     fechaCompra                    // milisegundos
 //   }
 //
-// Reglas del backend que se copian:
-//   - Una butaca vendida no se puede vender otra vez en la misma función, salvo que
-//     la entrada que la ocupa esté CANCELADA (la cancelación libera la butaca).
-//   - La entrada UTILIZADA y la CANCELADA no admiten más operaciones.
-//   - Al reprogramarla, la entrada pasa a REPROGRAMADA y libera su butaca anterior.
+// Ciclo de vida de una entrada (solo dos estados):
+//   - DISPONIBLE: recién comprada, todavía no se usó para entrar al cine.
+//   - UTILIZADA:  el vendedor la validó en la puerta; no se puede usar de nuevo.
+//
+// Regla: una butaca vendida no se puede vender otra vez en la misma función.
 //
 // La lista "real" vive en localStorage: obtenerEntradas() / guardarEntradas(lista).
 
@@ -37,8 +38,6 @@ const CLAVE = 'imoovie-entradas'
 export const ESTADOS = {
   DISPONIBLE: 'Disponible',
   UTILIZADA: 'Utilizada',
-  CANCELADA: 'Cancelada',
-  REPROGRAMADA: 'Reprogramada',
 }
 
 export function obtenerEntradas() {
@@ -54,10 +53,10 @@ export function agregarEntradas(nuevas) {
   guardarEntradas([...nuevas, ...obtenerEntradas()])
 }
 
-// Butacas que NO se pueden elegir en una función: las de entradas no canceladas.
+// Butacas que NO se pueden elegir en una función: las de todas sus entradas.
 export function butacasOcupadas(funcionId, entradas) {
   return entradas
-    .filter((e) => e.funcionId === funcionId && e.estado !== 'CANCELADA')
+    .filter((e) => e.funcionId === funcionId)
     .map((e) => e.butaca)
 }
 
@@ -67,9 +66,9 @@ export function butacasLibres(funcion, sala, entradas) {
   return sala.butacas.filter((b) => !ocupadas.includes(b.id))
 }
 
-// Una entrada sigue siendo válida para entrar al cine (no usada ni cancelada).
+// Una entrada sigue siendo válida para entrar al cine (todavía no se usó).
 export function estaVigente(entrada) {
-  return entrada.estado === 'DISPONIBLE' || entrada.estado === 'REPROGRAMADA'
+  return entrada.estado === 'DISPONIBLE'
 }
 
 // Promedio de calificaciones de una película, redondeado a 2 decimales.
@@ -93,7 +92,7 @@ export function inicioDeEntrada(entrada, funciones) {
 
 // Datos de una entrada para mostrar, sin quién la compró ni cuánto pagó:
 // es la misma vista reducida que devuelve GET /api/entradas/qr/{codigo} del backend.
-// Se usa en la consulta pública y en la validación en puerta.
+// La usa el panel de admin y, por debajo, detallesCompra.
 export function detalleEntrada(entrada) {
   const funcion = obtenerFunciones().find((f) => f.id === entrada.funcionId)
   const pelicula = obtenerPeliculas().find((p) => p.id === funcion?.peliculaId)
@@ -114,6 +113,32 @@ export function detalleEntrada(entrada) {
     sucursalDireccion: sucursal?.direccion ?? '',
     butaca: entrada.butaca,
     tipo: butaca ? TIPOS_BUTACA[butaca.tipo] : '',
+  }
+}
+
+// La misma vista reducida, pero de TODA una compra: los datos de la función una sola vez
+// y la lista de butacas con su tipo y su estado. Reutiliza detalleEntrada para no duplicar
+// lógica. Devuelve null si no hay ninguna entrada con ese numeroCompra.
+// Se usa en la consulta pública (/consultar) y en la validación en puerta.
+export function detallesCompra(numeroCompra, entradas) {
+  const propias = entradas
+    .filter((e) => e.numeroCompra === numeroCompra)
+    .sort((a, b) => a.butaca.localeCompare(b.butaca, 'es', { numeric: true }))
+  if (propias.length === 0) return null
+  const detalles = propias.map(detalleEntrada)
+  const { pelicula, clasificacion, duracion, inicio, idioma, conSubtitulos, sala, sucursal, sucursalDireccion } = detalles[0]
+  return {
+    numeroCompra,
+    pelicula,
+    clasificacion,
+    duracion,
+    inicio,
+    idioma,
+    conSubtitulos,
+    sala,
+    sucursal,
+    sucursalDireccion,
+    butacas: detalles.map((d) => ({ butaca: d.butaca, tipo: d.tipo, estado: d.estado })),
   }
 }
 
